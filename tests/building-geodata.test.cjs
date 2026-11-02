@@ -31,7 +31,7 @@ function area(ring) {
 
 test('the compressed survey retains every footprint, courtyard and quantized dimension', async () => {
   const REAL_BUILDINGS = await buildings;
-  assert.equal(REAL_BUILDINGS.length, 37353);
+  assert.equal(REAL_BUILDINGS.length, 2517);
   let holes = 0;
   for (const building of REAL_BUILDINGS) {
     assert.ok(Number.isInteger(building.height) && building.height >= 1 && building.height <= 472);
@@ -59,20 +59,27 @@ test('the compressed survey retains every footprint, courtyard and quantized dim
     assert.equal(building.cx, (building.minX + building.maxX) / 2);
     assert.equal(building.cz, (building.minZ + building.maxZ) / 2);
   }
-  assert.equal(holes, 661);
+  assert.equal(holes, 12);
 });
 
-test('survey buildings align with the existing city coordinate frame', async () => {
+test('survey buildings align with the Pardubice frame', async () => {
   const REAL_BUILDINGS = await buildings;
-  for (const [name, x, z, height, year] of [
-    ['Empire State Building', -90.5, 685.5, 378, 1930],
-    ['Chrysler Building', 510, -45.75, 289, 1930],
-    ['One World Trade Center', -203.25, 5253.25, 429, 2010]
+  const inside = (ring, x, z) => {
+    let hit = false;
+    for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+      if ((ring[i].z > z) !== (ring[j].z > z) && x < (ring[j].x - ring[i].x) * (z - ring[i].z) / (ring[j].z - ring[i].z) + ring[i].x) hit = !hit;
+    }
+    return hit;
+  };
+  // A point inside each landmark (js/pardubice-geodata.js landmarks) and its roof height from OSM
+  for (const [name, x, z, height] of [
+    ['Zelená brána', 1.3, 0.1, 59],
+    ['Grand', -111.2, 9.8, 14],
+    ['Východočeské divadlo', -14.9, 132.1, 20]
   ]) {
-    const building = REAL_BUILDINGS.find(b => b.cx === x && b.cz === z);
+    const building = REAL_BUILDINGS.find(b => b.polygons.some(p => inside(p.outer, x, z)));
     assert.ok(building, `${name} remains in the measured position.`);
-    assert.equal(building.height, height);
-    assert.equal(building.year, year);
+    assert.equal(building.height, height, name);
   }
 });
 

@@ -19,6 +19,7 @@
     }
   </script>
   <!-- Fetch the city modules in parallel before stylesheets; the module graph controls evaluation order. -->
+  <link rel="modulepreload" href="./js/pardubice-geodata.js" />
   <link rel="modulepreload" href="./js/nyc-geodata.js" />
   <link rel="modulepreload" href="./js/city-config.js" />
   <link rel="modulepreload" href="./js/tsl-materials.js" />
@@ -168,14 +169,13 @@
   <!-- Teleport Destinations (native popover: light-dismiss & Esc) -->
   <div id="teleport-popover" class="popover" popover data-side="below" data-anchor="hud-toolbar" aria-label="Teleport the active player">
     <div class="pop-title">Teleport to</div>
-    <button id="tp-empire" class="pop-item tp-btn" data-teleport="empire" type="button"><span class="pop-name">Empire State Building</span><span class="pop-sub">5th Ave · Midtown</span></button>
-    <button id="tp-timessq" class="pop-item tp-btn" data-teleport="timessq" type="button"><span class="pop-name">Times Square</span><span class="pop-sub">7th Ave · Theater District</span></button>
-    <button id="tp-chrysler" class="pop-item tp-btn" data-teleport="chrysler" type="button"><span class="pop-name">Chrysler Building</span><span class="pop-sub">Lexington Ave · Midtown East</span></button>
-    <button id="tp-grandcentral" class="pop-item tp-btn" data-teleport="grandcentral" type="button"><span class="pop-name">Grand Central Terminal</span><span class="pop-sub">Park Ave · Midtown East</span></button>
-    <button id="tp-bryant" class="pop-item tp-btn" data-teleport="bryant" type="button"><span class="pop-name">Bryant Park</span><span class="pop-sub">6th Ave · Midtown</span></button>
-    <button id="tp-flatiron" class="pop-item tp-btn" data-teleport="flatiron" type="button"><span class="pop-name">Flatiron Building</span><span class="pop-sub">5th Ave · Flatiron District</span></button>
-    <button id="tp-centralpark" class="pop-item tp-btn" data-teleport="centralpark" type="button"><span class="pop-name">Central Park</span><span class="pop-sub">6th Ave · Central Park South</span></button>
-    <button id="tp-owtc" class="pop-item tp-btn" data-teleport="owtc" type="button"><span class="pop-name">One World Trade Center</span><span class="pop-sub">Vesey St · Financial District</span></button>
+<button id="tp-brana" class="pop-item tp-btn" data-teleport="brana" type="button"><span class="pop-name">Zelená brána</span><span class="pop-sub">náměstí Republiky · Staré Město</span></button>
+    <button id="tp-pernstynske" class="pop-item tp-btn" data-teleport="pernstynske" type="button"><span class="pop-name">Pernštýnské náměstí</span><span class="pop-sub">Staré Město</span></button>
+    <button id="tp-zamek" class="pop-item tp-btn" data-teleport="zamek" type="button"><span class="pop-name">Zámek</span><span class="pop-sub">Pod Zámkem</span></button>
+    <button id="tp-mir" class="pop-item tp-btn" data-teleport="mir" type="button"><span class="pop-name">třída Míru</span><span class="pop-sub">pěší zóna</span></button>
+    <button id="tp-divadlo" class="pop-item tp-btn" data-teleport="divadlo" type="button"><span class="pop-name">Východočeské divadlo</span><span class="pop-sub">náměstí Republiky</span></button>
+    <button id="tp-nadrazi" class="pop-item tp-btn" data-teleport="nadrazi" type="button"><span class="pop-name">Hlavní nádraží</span><span class="pop-sub">náměstí Jana Pernera</span></button>
+    <button id="tp-tyrsovy" class="pop-item tp-btn" data-teleport="tyrsovy" type="button"><span class="pop-name">Tyršovy sady</span><span class="pop-sub">u Chrudimky</span></button>
   </div>
 
   <!-- Bottom-Left: Street-Name Signs & Live GPS Radar Minimap -->
