@@ -1,9 +1,11 @@
 // js/pardubice-surfaces.js — ground surfaces of the Pardubice map from js/pardubice-geodata.js, as plain geometry (no
 // three.js): where people may walk, where the water is, and flat strips for the roads.
 //
-// walkableRects() feeds js/road-network.js, which takes these rectangles as the curbs that bound the roads: lanes go
-// where no rectangle is, walkers where one is. So every carriageway that traffic drives (PARDUBICE roads with
-// `drivable`) is cleared out of the rectangles, including where a footway crosses it.
+// walkableRects() feeds js/road-network.js as its sidewalks: where walkers go. They are `soft`: unlike Manhattan's
+// curbs they do not bound the lanes, which come from the OSM road graph (road-network.js straightens that graph and
+// merges its junctions, so its lanes stray metres from the OSM centrelines these rectangles follow). Every carriageway
+// that traffic drives (PARDUBICE roads with `drivable`) is still cleared out of them, including where a footway
+// crosses it.
 
 const SIDEWALK = 3; // m of pavement either side of a drivable carriageway
 
@@ -95,7 +97,7 @@ function walkableRects(data, cell = 2) {
       const key = `${i0},${i - 1}`;
       let r = open.get(key);
       if (r) r.maxZ = minZ + (j + 1) * cell;
-      else rects.push(r = { minX: minX + i0 * cell, maxX: minX + i * cell, minZ: minZ + j * cell, maxZ: minZ + (j + 1) * cell });
+      else rects.push(r = { minX: minX + i0 * cell, maxX: minX + i * cell, minZ: minZ + j * cell, maxZ: minZ + (j + 1) * cell, soft: true });
       next.set(key, r);
     }
     open = next;
@@ -134,4 +136,24 @@ function ribbon(pts, width) {
   return { positions, indices };
 }
 
-export { walkableRects, isWater, ribbon, inPolygon };
+// The road-graph junctions (3+ links) that OSM traffic signals control: OSM puts a signal node on each approach's stop
+// line, metres before the junction, so each one is snapped to the nearest junction within `radius`. One {x, z} per
+// junction, at its graph node (js/road-network.js matches signal positions to its junctions within 6 m).
+function signalJunctions(data, radius = 30) {
+  const { nodes, links } = data.roadGraph;
+  const degree = new Map();
+  for (const [a, b] of links) for (const n of [a, b]) degree.set(n, (degree.get(n) || 0) + 1);
+  const junctions = [...degree].filter(([, d]) => d >= 3).map(([n]) => n);
+  const picked = new Map();
+  for (const s of data.signals) {
+    let best = -1, bestD = radius;
+    for (const n of junctions) {
+      const d = Math.hypot(nodes[2 * n] - s.x, nodes[2 * n + 1] - s.z);
+      if (d <= bestD) { best = n; bestD = d; }
+    }
+    if (best >= 0) picked.set(best, { x: nodes[2 * best], z: nodes[2 * best + 1] });
+  }
+  return [...picked.values()];
+}
+
+export { walkableRects, isWater, ribbon, inPolygon, signalJunctions };

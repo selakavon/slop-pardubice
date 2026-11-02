@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { PARDUBICE } from '../js/pardubice-geodata.js';
-import { walkableRects, isWater, ribbon } from '../js/pardubice-surfaces.js';
+import { walkableRects, isWater, ribbon, signalJunctions } from '../js/pardubice-surfaces.js';
 
 const rects = walkableRects(PARDUBICE);
 const covered = (x, z) => rects.some((r) => x >= r.minX && x <= r.maxX && z >= r.minZ && z <= r.maxZ);
@@ -55,8 +55,8 @@ test('ribbon has two vertices per point', () => {
 });
 
 test('curb rects stay out of the whole carriageway, edges included', () => {
-  // js/road-network.js blocks a lane wherever a curb rect lies within 0.3 m of it: lanes run up to the carriageway's
-  // edge on narrow streets, so no rect may reach inside half the width (less the 0.3 m it checks)
+  // Pavement is walkable ground: a rect reaching onto the asphalt would put walkers in the traffic, so none may reach
+  // inside half the carriageway's width (less 0.3 m)
   for (const r of PARDUBICE.roads.filter((r) => r.drivable)) {
     for (let i = 2; i < r.pts.length; i += 2) {
       const ax = r.pts[i - 2], az = r.pts[i - 1], bx = r.pts[i], bz = r.pts[i + 1];
@@ -69,5 +69,34 @@ test('curb rects stay out of the whole carriageway, edges included', () => {
         assert.ok(!covered(x + nx * d * s, z + nz * d * s), `${r.name || r.kind} edge at ${(x + nx * d * s).toFixed(1)}, ${(z + nz * d * s).toFixed(1)}`);
       }
     }
+  }
+});
+
+test('each OSM traffic signal marks the road-graph junction it controls', () => {
+  const junctions = signalJunctions(PARDUBICE);
+  const { nodes, links } = PARDUBICE.roadGraph;
+  const degree = new Map();
+  for (const [a, b] of links) for (const n of [a, b]) degree.set(n, (degree.get(n) || 0) + 1);
+  assert.ok(junctions.length >= 8, `junctions ${junctions.length}`);
+  assert.equal(new Set(junctions.map((j) => `${j.x},${j.z}`)).size, junctions.length, 'one entry per junction');
+  for (const j of junctions) {
+    assert.ok(PARDUBICE.signals.some((s) => Math.hypot(s.x - j.x, s.z - j.z) <= 30), 'a signal stands within 30 m');
+    const i = [...degree.keys()].find((n) => nodes[2 * n] === j.x && nodes[2 * n + 1] === j.z);
+    assert.ok(i !== undefined && degree.get(i) >= 3, 'it is a real junction of the road graph');
+  }
+});
+
+test('traffic can circulate through most of the drivable network', async () => {
+  // js/road-network.js keeps only the largest strongly connected set of edges; the OSM graph's own largest set holds
+  // 1832 of its 2017 links, so curbs at the junctions must leave room for the turns
+  const { buildRoadNetwork } = await import('../js/road-network.js');
+  const log = console.info;
+  console.info = () => {};
+  try {
+    const net = buildRoadNetwork(rects, [], signalJunctions(PARDUBICE));
+    assert.ok(net.edges.length >= 1200, `only ${net.edges.length} edges carry traffic`);
+    assert.ok(net.nodes.filter((n) => n.signal).length >= 8, 'the signalised junctions are on the network');
+  } finally {
+    console.info = log;
   }
 });

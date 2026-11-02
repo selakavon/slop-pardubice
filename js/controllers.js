@@ -5,7 +5,8 @@ import {
   getIslandBoundsAtZ,
   isTypingInField,
   blockAt,
-  streetZ
+  defaultSpawn,
+  PARKED
 } from './city-config.js';
 import { cityUniforms, createCarPaintMaterial, createContactShadowMaterial } from './tsl-materials.js';
 import {
@@ -31,7 +32,6 @@ import { polygonContact } from './building-collision.js';
 // Player models, animation and movement for walking, driving, cycling and flying.
 
 // Spawn on 5th Ave at 37th St, facing south down the avenue toward the Empire State Building (34th St)
-const SPAWN_Z = streetZ(37);
 const groundCollider = { type: 'ground' };
 
 const CAR_DRIVE = {
@@ -478,8 +478,8 @@ class ThirdPersonControllerManager {
       mesh: root,
       crowd,
       rig,
-      position: new THREE.Vector3(-11.6, ISLAND_BOUNDS.sidewalkHeight, SPAWN_Z + 12),
-      heading: 0,
+      position: new THREE.Vector3(defaultSpawn.x, 0, defaultSpawn.z),
+      heading: defaultSpawn.heading,
       speed: 0,
       verticalVel: 0,
       cameraTargetOffset: new THREE.Vector3(0, 1.55, 0),
@@ -587,10 +587,10 @@ class ThirdPersonControllerManager {
       carState,
       headLights,
       wheels,
-      position: new THREE.Vector3(3.6, 0.0, SPAWN_Z + 12),
-      prevX: 3.6,
-      prevZ: SPAWN_Z + 12,
-      heading: 0,
+      position: new THREE.Vector3(PARKED.car.x, 0.0, PARKED.car.z),
+      prevX: PARKED.car.x,
+      prevZ: PARKED.car.z,
+      heading: PARKED.car.heading,
       speed: 0,
       vx: 0,
       vz: 0,
@@ -756,8 +756,8 @@ class ThirdPersonControllerManager {
       riderRig,
       helmet,
       headLight,
-      position: new THREE.Vector3(5.2, 0.0, SPAWN_Z - 8),
-      heading: 0,
+      position: new THREE.Vector3(PARKED.cyclist.x, 0.0, PARKED.cyclist.z),
+      heading: PARKED.cyclist.heading,
       speed: 0,
       leanAngle: 0,
       pedalPhase: 0,
@@ -840,7 +840,7 @@ class ThirdPersonControllerManager {
       tiltPivot,
       mainRotorPivot,
       tailRotorPivot,
-      position: new THREE.Vector3(-110, 96, SPAWN_Z - 60),
+      position: new THREE.Vector3(defaultSpawn.x - 60, 96, defaultSpawn.z + 60),
       heading: 0.62,
       speed: 0,
       verticalSpeed: 0,

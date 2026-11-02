@@ -18,8 +18,8 @@ import { cityUniforms, createSteamMaterial, createTreeGrateMaterial, createGodRa
 import { createTreeField } from './trees.js';
 import { REAL_TREES } from './tree-geodata.js';
 import { placeStreetTrees } from './tree-placements.js';
-import { createSubwayEntranceParts, createFoodCartParts } from './street-props.js';
-import { createSubwayEntrances } from './subway-entrances.js';
+import { GEO } from './nyc-geodata.js';
+import { signalJunctions } from './pardubice-surfaces.js';
 import { pavedPlazaRects, centralParkClearings, parkTreeSites, parkLampSites } from './city-grid.js';
 import { bryantParkLawn } from './landmarks.js';
 
@@ -333,6 +333,46 @@ function buildStreetDetails(scene, colliders = []) {
     }
   }
 
+  // Pardubice: a signal pole at each OSM traffic signal, beside its carriageway, with one head facing the oncoming
+  // traffic; the junction it controls (pardubice-surfaces.js signalJunctions) gets signalised. (New York's signal look
+  // until the Czech signals of stage 4.)
+  if (GEO.pardubice) {
+    const P = GEO.pardubice;
+    for (const j of signalJunctions(P)) signalIntersections.push(j);
+    for (const sig of P.signals) {
+      let best = null;
+      for (const r of P.roads) {
+        if (!r.drivable) continue;
+        for (let k = 2; k < r.pts.length; k += 2) {
+          const ax = r.pts[k - 2], az = r.pts[k - 1], dx = r.pts[k] - ax, dz = r.pts[k + 1] - az;
+          const L2 = dx * dx + dz * dz || 1e-9;
+          const t = Math.max(0, Math.min(1, ((sig.x - ax) * dx + (sig.z - az) * dz) / L2));
+          const d = Math.hypot(ax + t * dx - sig.x, az + t * dz - sig.z);
+          if (!best || d < best.d) best = { d, r, dx: dx / Math.sqrt(L2), dz: dz / Math.sqrt(L2) };
+        }
+      }
+      if (!best || best.d > 6) continue;
+      // Right-hand kerb of traffic travelling along the way's direction (heading 0 = +z; its right is -x)
+      const off = best.r.width / 2 + 0.9;
+      const px = sig.x - best.dz * off, pz = sig.z + best.dx * off;
+      if (!isClearOfPoles(px, pz, 3.0)) continue;
+      addPole(px, pz, 0.5);
+      dummy.rotation.set(0, 0, 0);
+      dummy.position.set(px, 2.1, pz);
+      dummy.scale.set(0.14, 4.2, 0.14);
+      dummy.updateMatrix();
+      poleMatrices.push(dummy.matrix.clone());
+      // The head faces the traffic coming toward it (against the way's direction)
+      dummy.position.set(px, 3.6, pz);
+      dummy.rotation.set(0, Math.atan2(-best.dx, -best.dz), 0);
+      dummy.scale.set(1, 1, 1);
+      dummy.updateMatrix();
+      yellowBoxMatrices.push(dummy.matrix.clone());
+      aveLensMatrices.push(dummy.matrix.clone());
+      dummy.rotation.set(0, 0, 0);
+    }
+  }
+
   // =========================================================================
   // 2. MID-BLOCK AVENUE & STREET ORNAMENTAL ACORN & COBRA STREETLIGHTS
   //    Placed directly along the true curb edges of every city block (BLOCKS)
@@ -535,7 +575,7 @@ function buildStreetDetails(scene, colliders = []) {
     { x: -215, y: 40, z: -45,  rotY: 0.35,  rotZ: -0.42 }, // Times Square / Broadway Canyon
     { x: -55,  y: 48, z: -360, rotY: 0.28,  rotZ: -0.46 }  // 59th St / Central Park South Canyon
   ];
-  for (const cs of canyonShafts) {
+  for (const cs of GEO.pardubice ? [] : canyonShafts) {
     const shaft = new THREE.Mesh(godRayGeo, godRayMat);
     const at = fromOldFrame(cs.x, cs.z); // (authored on the former compressed grid)
     shaft.position.set(at.x, cs.y, at.z);
@@ -547,7 +587,7 @@ function buildStreetDetails(scene, colliders = []) {
   // 3. CON EDISON ORANGE/WHITE STRIPED STEAM STACKS, NYCDOT SAWHORSE BARRICADES
   //    & BILLOWING WIND-DRIFTED VOLUMETRIC STEAM CLOUD TRAILS (REFERENCE PHOTO!)
   // =========================================================================
-  const steamLocations = [
+  const steamLocations = GEO.pardubice ? [] : [
     { x: 6.4,   z: 96,   windX: -1.0, windZ: -0.18 }, // 5th Ave & 37th St (Buffer zone clear of green bike lane!)
     { x: -7.5,  z: 148,  windX: 0.95, windZ: -0.22 }, // 5th Ave near 34th St (Empire State Building)
     { x: 6.4,   z: 48,   windX: -1.0, windZ: 0.15  }, // 5th Ave & 40th St (NYPL / Bryant Park)
@@ -690,87 +730,6 @@ function buildStreetDetails(scene, colliders = []) {
   steamInstancedSprites.frustumCulled = false;
   steamInstancedSprites.renderOrder = 2;
   group.add(steamInstancedSprites);
-
-  // =========================================================================
-  // 4. MTA SUBWAY ENTRANCES WITH GLOWING GREEN GLOBE LAMPS
-  // =========================================================================
-  const subwaySites = createSubwayEntrances(colliders, footprints);
-  const subwayMatrices = [];
-  const subwayColliders = [];
-  for (const { x, y, z, yaw } of subwaySites) {
-    const cs = Math.cos(yaw), sn = Math.sin(yaw);
-    subwayMatrices.push(new THREE.Matrix4().makeRotationY(yaw).setPosition(x, y, z));
-    const hw = 1.21, hd = 3.16;
-    const ex = Math.abs(cs) * hw + Math.abs(sn) * hd;
-    const ez = Math.abs(sn) * hw + Math.abs(cs) * hd;
-    addFootprint(x, z, ex * 2, ez * 2, true);
-    subwayColliders.push({
-      minX: x - ex, maxX: x + ex, minZ: z - ez, maxZ: z + ez, minY: 0.22, maxY: y + 2.8,
-      obb: { cx: x, cz: z, hx: hw, hz: hd, cs, sn }
-    });
-    streetPointSites.push({ x: x + sn * 2.98, y: y + 2.65, z: z + cs * 2.98, color: 0xb9e8c8, intensity: 12, dist: 8.5 });
-  }
-  for (const part of createSubwayEntranceParts()) {
-    addMatrixArrayInstanced(part.geometry, part.material, subwayMatrices, part.castShadow);
-  }
-
-  // =========================================================================
-  // 5. NYC HOT DOG / HALAL FOOD CARTS
-  // =========================================================================
-  // Keep the whole prop on the sidewalk, outside building lots.
-  const findPropSite = (x, z, width, depth) => {
-    const hw = width * 0.5 + 0.15;
-    const hd = depth * 0.5 + 0.15;
-    const fits = (px, pz) => {
-      const block = blockAt(px, pz);
-      if (!block || block.median) return false;
-      for (const dx of [-hw, 0, hw]) {
-        for (const dz of [-hd, 0, hd]) {
-          if (blockAt(px + dx, pz + dz) !== block) return false;
-        }
-      }
-      return !block.rects.some(([x0, x1, z0, z1]) =>
-        px + hw > x0 && px - hw < x1 && pz + hd > z0 && pz - hd < z1)
-        && !subwayColliders.some((b) => px + hw > b.minX && px - hw < b.maxX && pz + hd > b.minZ && pz - hd < b.maxZ);
-    };
-    if (fits(x, z)) return { x, z };
-    for (let r = 2; r <= 40; r += 2) {
-      for (let k = 0; k < 16; k++) {
-        const angle = k / 16 * Math.PI * 2;
-        const px = x + Math.cos(angle) * r;
-        const pz = z + Math.sin(angle) * r;
-        if (fits(px, pz)) return { x: px, z: pz };
-      }
-    }
-    return null;
-  };
-
-  const cartLocations = [
-    [-17, 152],   // Empire State corner
-    [-17, 25],    // NYPL / Bryant Park
-    [-127, 25],   // 6th Ave & 42nd
-    [-202, -28],  // Times Square
-    [-202, -108], // Duffy Square
-    [127, -25],   // Grand Central
-    [237, -25],   // Chrysler Building corner
-    [-17, -148],  // Rockefeller Center
-    [127, -205],  // Seagram Plaza corner
-    [-17, 325]    // Flatiron Plaza
-  ];
-
-  const cartMatrices = [];
-  for (const [ox, oz] of cartLocations) {
-    const raw = fromOldFrame(ox, oz);
-    const site = findPropSite(raw.x, raw.z, 3.5, 3.5);
-    if (!site) continue;
-    const { x, z } = site;
-    cartMatrices.push(new THREE.Matrix4().makeTranslation(x, 0, z));
-    addFootprint(x, z, 1.5, 2.2);
-    streetPointSites.push({ x, y: 2.15, z, color: 0xffdf9e, intensity: 28, dist: 9.5 });
-  }
-  for (const part of createFoodCartParts()) {
-    addMatrixArrayInstanced(part.geometry, part.material, cartMatrices, part.castShadow);
-  }
 
   // =========================================================================
   // 6. FIRE HYDRANTS & USPS BLUE MAILBOXES ALONG CURBS (INSTANCED)
@@ -931,10 +890,21 @@ function buildStreetDetails(scene, colliders = []) {
   for (const s of parkTreeSites || []) treePositions.push(s);
 
   // Surveyed street trees; parks keep their authored terrain, clearings and tree layouts.
-  let sidewalkTreePositions = placeStreetTrees(REAL_TREES, treePositions,
+  let sidewalkTreePositions = GEO.pardubice ? pardubiceTrees() : placeStreetTrees(REAL_TREES, treePositions,
     (x, z) => !inPlaza(x, z, 1.5) && isClearOfPoles(x, z, 2.2));
+  // Pardubice's surveyed trees (OSM natural=tree) keep their positions, clear of the signal poles
+  function pardubiceTrees() {
+    const out = [];
+    for (let i = 0; i < REAL_TREES.length; i += 2) {
+      const x = REAL_TREES[i], z = REAL_TREES[i + 1];
+      if (!isClearOfPoles(x, z, 2.2)) continue;
+      const r = hashPos(x, 6.1, z);
+      out.push({ x, y: 0, z, scale: 0.62 + r * 0.3, species: mixSpecies(hashPos(x, 4.4, z), 0.35, 0.25) });
+    }
+    return out;
+  }
   for (const tree of sidewalkTreePositions) treePositions.push(tree);
-  const treeField = createTreeField(scene, treePositions, [...colliders, ...subwayColliders]);
+  const treeField = createTreeField(scene, treePositions, colliders);
   group.add(treeField.group);
   sidewalkTreePositions = sidewalkTreePositions.filter((t) => treeField.sites.has(t));
   console.info(`[streetDetails] ${treeField.stats.trees} trees (${sidewalkTreePositions.length} street trees)`);

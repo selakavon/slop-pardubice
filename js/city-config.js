@@ -133,6 +133,12 @@ const TELEPORT_LOCATIONS = {
   tyrsovy: { x: -146, z: -566.2, heading: Math.PI }
 };
 const defaultSpawn = TELEPORT_LOCATIONS.brana;
+// Where the car and the bicycle wait for a new player: the car at the right-hand kerb of náměstí Republiky, 13 m from
+// the spawn (Czech traffic keeps right), the bicycle on the pavement beside the player
+const PARKED = {
+  car: { x: -42.3, z: 8.7, heading: -2.804 },
+  cyclist: { x: -31.7, z: 8, heading: defaultSpawn.heading }
+};
 
 // The places the map lists and labels by (the ones the spec says a local will check)
 const NYC_LANDMARKS = [
@@ -219,6 +225,7 @@ export {
   LANDMARK_SITES,
   TELEPORT_LOCATIONS,
   defaultSpawn,
+  PARKED,
   ISLAND_BOUNDS,
   BLOCKS,
   CUT_Z,

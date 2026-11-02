@@ -3,9 +3,8 @@ import { pass, mrt, output, normalView, positionView, metalness, roughness, vec2
 import { ssr } from 'three/addons/tsl/display/SSRNode.js';
 import { createPostProcessing } from './post-processing.js';
 import { ClusteredLighting } from 'three/addons/lighting/ClusteredLighting.js';
-import { getLocationLabel, isTypingInField, ROADS, NYC_LANDMARKS, TELEPORT_LOCATIONS } from './city-config.js';
+import { getLocationLabel, isTypingInField, ROADS, NYC_LANDMARKS, TELEPORT_LOCATIONS, defaultSpawn } from './city-config.js';
 import { buildCityGrid } from './city-grid.js';
-import { buildBoroughs } from './boroughs.js';
 import { buildLandmarks } from './landmarks.js';
 import { buildCityBlocks } from './buildings.js';
 import { buildStreetDetails } from './street-details.js';
@@ -85,16 +84,13 @@ async function initApp() {
   await showLoadingStage('Building streets, parks and waterfronts...');
   const cityGrid = buildCityGrid(scene);
   markInit('cityGrid');
-  await showLoadingStage('Building bridges and surrounding boroughs...');
-  const boroughs = buildBoroughs(scene, { sidewalks: cityGrid.sidewalks });
-  markInit('boroughs');
   await showLoadingStage('Building landmarks...');
   const { colliders: landmarkColliders } = buildLandmarks(scene);
   markInit('landmarks');
   await showLoadingStage('Generating building footprints and facades...');
   const cityBlocks = buildCityBlocks(scene, landmarkColliders);
   markInit('blocks');
-  const allColliders = [...landmarkColliders, ...cityBlocks.colliders, ...boroughs.colliders, ...(cityGrid.colliders || [])];
+  const allColliders = [...landmarkColliders, ...cityBlocks.colliders, ...(cityGrid.colliders || [])];
 
   await showLoadingStage('Placing trees, streetlights and street furniture...');
   const streetDetails = buildStreetDetails(scene, allColliders);
@@ -118,8 +114,9 @@ async function initApp() {
   await showLoadingStage('Preparing player, vehicles and controls...');
   const controllerManager = new ThirdPersonControllerManager(scene, allColliders);
   // Reuse teleport placement so saved players return at rest, close to their last positions.
+  let restored = false;
   try {
-    const saved = JSON.parse(localStorage.getItem('nyc-player-state'));
+    const saved = JSON.parse(localStorage.getItem('pardubice-player-state'));
     if (saved?.version === 1) {
       for (const mode of Object.keys(controllerManager.entities)) {
         const p = saved.entities?.[mode];
@@ -127,16 +124,22 @@ async function initApp() {
         controllerManager.setMode(mode);
         controllerManager.teleportActiveTo(p.x, p.z, p.heading, p.y);
       }
-      controllerManager.setMode(Object.hasOwn(controllerManager.entities, saved.activeMode) ? saved.activeMode : 'car');
+      controllerManager.setMode(Object.hasOwn(controllerManager.entities, saved.activeMode) ? saved.activeMode : 'person');
+      restored = true;
     }
   } catch { /* Missing or unavailable storage does not prevent playing. */ }
+  // A new player starts on foot on náměstí Republiky, looking through Zelená brána (the car & bicycle wait nearby)
+  if (!restored) {
+    controllerManager.setMode('person');
+    controllerManager.teleportActiveTo(defaultSpawn.x, defaultSpawn.z, defaultSpawn.heading);
+  }
 
   function savePlayerState() {
     try {
       const entities = Object.fromEntries(Object.entries(controllerManager.entities).map(([mode, entity]) => [mode, {
         x: entity.position.x, y: entity.position.y, z: entity.position.z, heading: entity.heading
       }]));
-      localStorage.setItem('nyc-player-state', JSON.stringify({ version: 1, activeMode: controllerManager.activeMode, entities }));
+      localStorage.setItem('pardubice-player-state', JSON.stringify({ version: 1, activeMode: controllerManager.activeMode, entities }));
     } catch { /* Storage may be disabled or full. */ }
   }
 
@@ -167,7 +170,7 @@ async function initApp() {
   // Island-wide static geometry: chunk & distance-cull the small props, shadow stand-ins for the big casters
   // (scene-culling.js)
   await showLoadingStage('Preparing scene visibility and shadows...');
-  const cullingRoots = ['ManhattanCityGrid', 'ManhattanCityBlocks', 'ManhattanStreetDetails', 'ManhattanLandmarks', 'Boroughs', 'RoadMarkings']
+  const cullingRoots = ['ManhattanCityBlocks', 'ManhattanStreetDetails', 'ManhattanLandmarks', 'RoadMarkings']
     .map((name) => scene.getObjectByName(name))
     .filter(Boolean);
   setupSceneCulling(scene, cullingRoots, lightingSystem.sunLight.shadow);
@@ -690,7 +693,6 @@ async function initApp() {
       savePlayerState();
       nextPlayerSave = now + 5000;
     }
-    if (boroughs.update) boroughs.update(elapsed); // Roosevelt Island Tramway cabins
     cityBlocks.update(cameraSystem.currentPos.x, cameraSystem.currentPos.z);
     if (cityBlocks.updateLights) cityBlocks.updateLights(cameraSystem.camera);
     if (streetDetails.update) streetDetails.update(cameraSystem.camera);

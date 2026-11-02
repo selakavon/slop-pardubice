@@ -8,12 +8,21 @@ import {
   createBillboardMaterial
 } from './tsl-materials.js';
 import { batchStaticGroupMeshes } from './city-grid.js';
+import { GEO } from './nyc-geodata.js';
 
 let bryantParkLawn;
 
 // Custom architectural 3D models for Midtown Manhattan's iconic landmarks
 
 function buildLandmarks(scene) {
+  // Pardubice's landmarks (Zelená brána, the castle, Grand, the theatre, St. Bartholomew's) come in stage 3; until then
+  // their OSM footprints are extruded with the other buildings
+  if (GEO.pardubice) {
+    const group = new THREE.Group();
+    group.name = 'ManhattanLandmarks';
+    scene.add(group);
+    return { group, colliders: [] };
+  }
   const group = new THREE.Group();
   group.name = 'ManhattanLandmarks';
   const colliders = [];

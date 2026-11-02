@@ -36,7 +36,7 @@ const FONT = 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
 const MIN_ZOOM = 0.015; // full map, pixels per metre: the whole harbour, Staten Island to the Bronx
 const MAX_ZOOM = 3.0; // single lots
 const RADAR_SCALE = 0.32; // radar pixels per metre on the ground (zooms out with altitude)
-const GRID_BEARING = (GEO.frame && GEO.frame.bearingDeg) || 29.02; // Manhattan's grid north, degrees east of true north
+const GRID_BEARING = (GEO.frame && GEO.frame.bearingDeg) ?? 29.02; // Manhattan's grid north, degrees east of true north
 
 // Map palette, shared by the radar & the atlas (in step with css/style.css): graphite ground with the streets a shade
 // lighter than the blocks they run between, muted parks & water; a taxi-yellow GPS route, white landmarks & player,
@@ -79,7 +79,10 @@ const MODELLED_LANDMARKS = [
 ];
 
 // Borough (0), waterway (1) & neighbourhood (2) names at their real places (world metres)
-const AREA_LABELS = [
+const AREA_LABELS = GEO.pardubice ? [
+  ['PARDUBICE', -650, -300, 0], ['Chrudimka', 226, -396, 1], ['STARÉ MĚSTO', 90, -110, 2],
+  ['ZELENÉ PŘEDMĚSTÍ', -520, 300, 2]
+] : [
   ['MANHATTAN', 120, -1500, 0], ['NEW JERSEY', -7000, 2000, 0], ['BROOKLYN', 7850, 8780, 0], ['QUEENS', 8810, -1680, 0],
   ['THE BRONX', 1010, -9640, 0], ['STATEN ISLAND', -1800, 19220, 0],
   ['HUDSON RIVER', -2680, -300, 1], ['HUDSON RIVER', -2650, -5600, 1], ['EAST RIVER', 1700, 800, 1],
@@ -220,6 +223,23 @@ function mapLayers() {
   // Manhattan inside its bulkhead line, and its piers
   L.manhattan = new Path2D();
   addRing(L.manhattan, MANHATTAN_COASTLINE);
+
+  // Pardubice: the whole map is ground (land colour) with the streets & footpaths drawn over it, the parks, the
+  // rivers & ponds, as OSM has them (js/pardubice-geodata.js)
+  if (GEO.pardubice) {
+    const P = GEO.pardubice;
+    L.land = new Path2D();
+    addRing(L.land, MANHATTAN_COASTLINE);
+    L.manhattan = new Path2D();
+    L.pWater = new Path2D();
+    for (const w of P.water) for (const [outer, ...holes] of w.polygons) {
+      addRing(L.pWater, outer);
+      for (const h of holes) addRing(L.pWater, h, true);
+    }
+    L.pStreets = new TiledLayer();
+    L.pPaths = new TiledLayer();
+    for (const r of P.roads) (/^(footway|path|cycleway|steps)$/.test(r.kind) ? L.pPaths : L.pStreets).line(r.pts);
+  }
   L.piers = new Path2D();
   for (const p of WATERFRONT_PIERS) if (p.ring) addRing(L.piers, p.ring);
 
@@ -227,6 +247,7 @@ function mapLayers() {
   // as city-grid.js / buildings.js treat them
   L.parkLand = new TiledLayer();
   for (const park of GEO.parks || []) for (const ring of park.rings || []) L.parkLand.ring(ring);
+  for (const park of GEO.pardubice?.parks || []) for (const [outer, ...holes] of park.polygons) L.parkLand.ring(outer, holes);
   L.blocks = new TiledLayer();
   L.parkBlocks = new TiledLayer();
   for (const b of BLOCKS) (b.park > 0.6 && !b.median ? L.parkBlocks : L.blocks).ring(b.poly);
@@ -796,6 +817,22 @@ class NYCMapSystem {
       ctx.strokeStyle = MAP.parkEdge;
       ctx.lineWidth = px(1);
       L.parkBlocks.each(v, (p) => ctx.stroke(p));
+    }
+
+    // 3B. Pardubice: the rivers & ponds, then the streets & footpaths to scale (never thinner than a pixel)
+    if (L.pWater) {
+      ctx.fillStyle = MAP.pond;
+      ctx.fill(L.pWater);
+      ctx.strokeStyle = MAP.pondEdge;
+      ctx.lineWidth = px(1);
+      ctx.stroke(L.pWater);
+      ctx.strokeStyle = MAP.streets;
+      ctx.lineWidth = Math.max(px(1.2), 7);
+      L.pStreets.each(v, (p) => ctx.stroke(p));
+      if (s >= 0.12) {
+        ctx.lineWidth = Math.max(px(0.6), 2.5);
+        L.pPaths.each(v, (p) => ctx.stroke(p));
+      }
     }
 
     // 4. Central Park: meadows, drives & transverses, water bodies

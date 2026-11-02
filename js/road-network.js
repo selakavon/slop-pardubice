@@ -37,7 +37,9 @@ function buildRoadNetwork(sidewalks, obstacles, signalIntersections = []) {
       }
     }
   }
-  for (const r of sidewalks) insert({ minX: r.minX, maxX: r.maxX, minZ: r.minZ, maxZ: r.maxZ, curb: true });
+  // A `soft` sidewalk (a pavement drawn from map data, js/pardubice-surfaces.js) is walkable like a curb island but does
+  // not bound the lanes: the road graph does
+  for (const r of sidewalks) insert({ minX: r.minX, maxX: r.maxX, minZ: r.minZ, maxZ: r.maxZ, curb: true, soft: !!r.soft });
   for (const r of obstacles) insert(r);
 
   // Calls fn(rect) for every footprint overlapping the box until fn returns true
@@ -101,7 +103,7 @@ function buildRoadNetwork(sidewalks, obstacles, signalIntersections = []) {
     return false;
   }
   const blockedOnStreet = (x, z, clear) => !onLand(x - clear, x + clear, z - clear, z + clear) ||
-    query(x - 0.3, x + 0.3, z - 0.3, z + 0.3, (r) => r.curb) ||
+    query(x - 0.3, x + 0.3, z - 0.3, z + 0.3, (r) => r.curb && !r.soft) ||
     nearMedian(x, z, clear) ||
     query(x - clear, x + clear, z - clear, z + clear, (r) => !r.curb && !r.pedestrianOnly && (r.maxX - r.minX < 50 || r.maxZ - r.minZ < 50) && !medianBox(r));
 
