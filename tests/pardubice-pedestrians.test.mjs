@@ -29,3 +29,24 @@ test('pedestrian routes produce sidewalk tracks that connect at junctions', () =
   assert.ok(tracks >= 2000, `only ${tracks} sidewalk tracks`);
   assert.ok(linked >= tracks * 0.5, `only ${linked} of ${tracks} tracks lead on`);
 });
+
+test('the river is water except where a bridge crosses it', async () => {
+  const { isWaterAt } = await import('../js/city-config.js');
+  const { isWater } = await import('../js/pardubice-surfaces.js');
+  const P = GEO.pardubice;
+  const chrudimka = P.places.Chrudimka;
+  assert.ok(isWaterAt(chrudimka.x, chrudimka.z), 'the Chrudimka');
+  const bridges = P.roads.filter((r) => r.bridge && r.drivable);
+  let decks = 0;
+  for (const r of bridges) {
+    for (let i = 2; i < r.pts.length; i += 2) {
+      const x = (r.pts[i - 2] + r.pts[i]) / 2, z = (r.pts[i - 1] + r.pts[i + 1]) / 2;
+      if (!isWater(P, x, z)) continue;
+      decks++;
+      assert.ok(!isWaterAt(x, z), `${r.name || r.kind} bridge deck at ${x.toFixed(1)}, ${z.toFixed(1)}`);
+    }
+  }
+  assert.ok(decks >= 3, `bridge decks over water: ${decks}`);
+  const s = GEO.pardubice.landmarks['Zelená brána'];
+  assert.ok(!isWaterAt(s.x - 30, s.z), 'not at the spawn');
+});

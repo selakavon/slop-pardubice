@@ -1,5 +1,5 @@
 import { GEO } from './nyc-geodata.js';
-import { walkableRects } from './pardubice-surfaces.js';
+import { walkableRects, inPolygon } from './pardubice-surfaces.js';
 
 // Pardubice spatial configuration at true 1:1 scale, from js/pardubice-geodata.js (OpenStreetMap, via the GEO adapter).
 //
@@ -72,6 +72,27 @@ for (const r of WALKABLE_RECTS) {
     }
   }
 }
+// Water the player can't walk, cycle or drive into: the rivers & ponds, except on the bridges over them (a bridge deck is
+// its OSM way's width, plus a metre for the parapet)
+const WATER = P.water.flatMap((w) => w.polygons).map((rings) => {
+  const xs = rings[0].filter((_, i) => i % 2 === 0), zs = rings[0].filter((_, i) => i % 2 === 1);
+  return { rings, minX: Math.min(...xs), maxX: Math.max(...xs), minZ: Math.min(...zs), maxZ: Math.max(...zs) };
+});
+const BRIDGES = P.roads.filter((r) => r.bridge);
+function onBridge(x, z) {
+  return BRIDGES.some((r) => {
+    for (let i = 2; i < r.pts.length; i += 2) {
+      const ax = r.pts[i - 2], az = r.pts[i - 1], dx = r.pts[i] - ax, dz = r.pts[i + 1] - az;
+      const t = Math.max(0, Math.min(1, ((x - ax) * dx + (z - az) * dz) / (dx * dx + dz * dz || 1)));
+      if (Math.hypot(ax + t * dx - x, az + t * dz - z) <= r.width / 2 + 1) return true;
+    }
+    return false;
+  });
+}
+function isWaterAt(x, z) {
+  return WATER.some((w) => x >= w.minX && x <= w.maxX && z >= w.minZ && z <= w.maxZ && inPolygon(w.rings, x, z)) && !onBridge(x, z);
+}
+
 function blockAt(x, z) {
   for (const r of WALK_GRID.get(Math.floor(x / WALK_CELL) * 100000 + Math.floor(z / WALK_CELL)) || []) {
     if (x >= r.minX && x <= r.maxX && z >= r.minZ && z <= r.maxZ) return PAVEMENT;
@@ -255,6 +276,7 @@ export {
   avenueX,
   districtAt,
   blockAt,
+  isWaterAt,
   nearestRoads,
   getBlockBounds,
   getLocationLabel,

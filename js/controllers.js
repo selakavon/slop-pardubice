@@ -5,6 +5,7 @@ import {
   getIslandBoundsAtZ,
   isTypingInField,
   blockAt,
+  isWaterAt,
   defaultSpawn,
   PARKED
 } from './city-config.js';
@@ -996,6 +997,23 @@ class ThirdPersonControllerManager {
           near = this.nearColliders(gx, gz, reach);
           i = -1;
           while (i + 1 < near.length && near[i + 1]._order <= order) i++;
+        }
+      }
+    }
+
+    // Rivers & ponds: on foot, by bike or by car, back to the last dry ground (the helicopter flies over)
+    if (!heli && isWaterAt) {
+      const dry = this._dryGround ??= new WeakMap();
+      if (!isWaterAt(pos.x, pos.z)) dry.set(pos, { x: pos.x, z: pos.z });
+      else {
+        const last = dry.get(pos);
+        if (last) {
+          pos.x = last.x;
+          pos.z = last.z;
+        }
+        if (carEntity) {
+          carEntity.speed *= -0.2;
+          carEntity.vx = carEntity.vz = 0;
         }
       }
     }

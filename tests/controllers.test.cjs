@@ -708,3 +708,25 @@ test('player clearance respects altitude and permits a ground arrival under an a
   helicopter.position.y = 1;
   assert.notDeepEqual({ ...controller.teleportActiveTo(0, 0) }, { x: 0, z: 0 }, 'a helicopter parked at street level must be avoided');
 });
+
+test('ground modes stop at the water; the helicopter flies over it', () => {
+  for (const mode of ['person', 'car', 'cyclist', 'helicopter']) {
+    const { controller } = keyboardHarness({
+      ISLAND_BOUNDS: { minX: -500, maxX: 500, minZ: -500, maxZ: 500, sidewalkHeight: 0 },
+      getIslandBoundsAtZ: () => ({ westX: -500, eastX: 500 }),
+      isWaterAt: (x) => x > 10
+    });
+    controller.colliders = [];
+    controller.activeMode = mode;
+    const car = mode === 'car' ? { type: 'car', heading: Math.PI / 2, speed: 12, vx: 0, vz: 0 } : null;
+    const pos = { x: 9, y: 0, z: 0 };
+    controller.resolveHorizontalCollision(pos, 0.48, car);
+    pos.x = 11;
+    controller.resolveHorizontalCollision(pos, 0.48, car);
+    if (mode === 'helicopter') assert.equal(pos.x, 11, 'over the river');
+    else {
+      assert.equal(pos.x, 9, `${mode} stays on the bank`);
+      if (car) assert.ok(Math.abs(car.speed) < 12, 'the car loses its speed');
+    }
+  }
+});

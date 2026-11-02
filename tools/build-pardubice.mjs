@@ -48,7 +48,7 @@ const PARDUBICE = {
     sources: '© OpenStreetMap contributors (ODbL), Overpass snapshot tools/data/osm_pardubice.json'
   },
   roads: data.roads.map((r) => ({ id: r.id, name: r.name, kind: r.kind, width: r.width, lanes: r.lanes, dir: r.dir,
-    drivable: isDrivable(r), pts: flat(r.pts) })),
+    drivable: isDrivable(r), ...(r.bridge ? { bridge: true } : {}), pts: flat(r.pts) })),
   water: data.water.map((w) => ({ name: w.name, kind: w.kind, polygons: polys(w.polygons) })),
   parks: data.parks.map((p) => ({ name: p.name, kind: p.kind, polygons: polys(p.polygons) })),
   squares: data.squares.map((s) => ({ name: s.name, polygons: polys(s.polygons) })),

@@ -148,7 +148,7 @@ export function parseOsm(json) {
       const dir = t.oneway === '-1' ? -1 : /^(yes|true|1)$/.test(t.oneway || '') || t.junction === 'roundabout' ? 1 : 0;
       out.roads.push({
         id: e.id, name: t.name || '', kind, width: num(t.width) ?? w, lanes: num(t.lanes) ?? lanes, dir,
-        pts: ring(e.geometry), nodeIds: e.nodes || [], area: t.area === 'yes',
+        pts: ring(e.geometry), nodeIds: e.nodes || [], area: t.area === 'yes', bridge: !!t.bridge && t.bridge !== 'no',
         access: { access: t.access, vehicle: t.vehicle, motor_vehicle: t.motor_vehicle }, tags: t
       });
     }
