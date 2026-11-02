@@ -58,6 +58,7 @@ import {
 } from './tsl-materials.js';
 import { createRoadPaintChunkBuilder } from './road-paint.js';
 import { GEO } from './nyc-geodata.js';
+import { buildPardubiceGround } from './pardubice-ground.js';
 
 // Live construction data consumed by the building and street-detail builders after buildCityGrid().
 let centralParkClearings;
@@ -77,6 +78,7 @@ function addStreetGround(poly, height) {
 }
 
 function getStreetGroundHeight(x, z) {
+  if (GEO.pardubice) return 0; // flat ground: no raised Manhattan sidewalks
   let height = 0.22;
   for (const s of streetGroundSurfaces) {
     if (s.height > height && x >= s.minX && x <= s.maxX && z >= s.minZ && z <= s.maxZ
@@ -1490,6 +1492,16 @@ function buildWaterfrontPiers(group) {
 }
 
 function buildCityGrid(scene) {
+  // Pardubice builds its own ground; the Manhattan builders below stay for upstream merges
+  if (GEO.pardubice) {
+    centralParkClearings = { polygons: [], drives: [], transverseZ: [], rects: [], circles: [], mall: { x: 1e6, z0: 1e6, z1: 1e6 } };
+    parkTreeSites = [];
+    parkLampSites = [];
+    pavedPlazaRects = [];
+    sidewalkBlocks = [];
+    fdrViaduct = null;
+    return buildPardubiceGround(scene);
+  }
   streetGroundSurfaces = [];
   const group = new THREE.Group();
   group.name = 'ManhattanCityGrid';
