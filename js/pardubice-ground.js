@@ -3,7 +3,8 @@
 // js/city-grid.js's buildCityGrid returned for Manhattan, so the rest of the boot sequence is unchanged.
 import * as THREE from 'three/webgpu';
 import { GEO } from './nyc-geodata.js';
-import { walkableRects, ribbon } from './pardubice-surfaces.js';
+import { ribbon } from './pardubice-surfaces.js';
+import { WALKABLE_RECTS } from './city-config.js';
 import { createRoadPaintChunkBuilder } from './road-paint.js';
 import { createRoadSurfaceMaterial, createSidewalkMaterial, createParkLawnMaterial, createWaterMaterial } from './tsl-materials.js';
 
@@ -90,7 +91,7 @@ function buildPardubiceGround(scene) {
   scene.add(group);
   return {
     group,
-    sidewalks: walkableRects(P),
+    sidewalks: WALKABLE_RECTS,
     footprints: [],
     highwayLanes: [],
     colliders: [],

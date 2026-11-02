@@ -50,7 +50,8 @@ function createPedestrianRoutes({ walkable, onSidewalk }, blockAt) {
     if (crossings.has(n)) return crossings.get(n);
     const result = [];
     crossings.set(n, result);
-    if (!n.signal) return result;
+    // Crosswalks across the grid's sides only: a centreline junction (no `road` sides) gets none yet
+    if (!n.signal || !n.road) return result;
     for (let side = 0; side < 4; side++) {
       const road = n.road[side];
       if (!road) continue;
@@ -88,6 +89,8 @@ function createPedestrianRoutes({ walkable, onSidewalk }, blockAt) {
     for (let i = 0; i <= steps; i++) {
       const x = a.x + (b.x - a.x) * i / (steps || 1), z = a.z + (b.z - a.z) * i / (steps || 1);
       if (sidewalk && !onSidewalk(x, z)) return false;
+      // A block without a curb outline (Pardubice's pavement) is bounded by the buildings `clear` already tests
+      if (!block.poly) continue;
       let distance = Infinity;
       for (let j = 0, k = block.poly.length - 1; j < block.poly.length; k = j++) {
         const p = block.poly[j], q = block.poly[k], dx = q.x - p.x, dz = q.z - p.z;

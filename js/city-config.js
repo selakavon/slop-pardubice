@@ -1,4 +1,5 @@
 import { GEO } from './nyc-geodata.js';
+import { walkableRects } from './pardubice-surfaces.js';
 
 // Pardubice spatial configuration at true 1:1 scale, from js/pardubice-geodata.js (OpenStreetMap, via the GEO adapter).
 //
@@ -55,16 +56,35 @@ const getBroadwayX = () => NaN;
 const fromOldFrame = () => ({ ...NONE });
 const getBlockBounds = () => null;
 const districtAt = () => 'pardubice';
-// Buildings block movement through their colliders, and walkers & traffic route on the network and sidewalks, so no
-// point is inside a city block
-const blockAt = () => null;
+// Walkable ground (pavements, squares, paths, parks: js/pardubice-surfaces.js), computed once for the ground, the road
+// network and the walkers. It is one block, PAVEMENT: carriageways and water are outside it, so walkers keep off the
+// roads except on crossings. (No `poly`: buildings, not a curb outline, bound it; see pedestrian-routes.js.)
+const WALKABLE_RECTS = walkableRects(P);
+const PAVEMENT = { id: 0, park: 0, median: false, district: 'pardubice', rects: [] };
+const WALK_CELL = 16;
+const WALK_GRID = new Map();
+for (const r of WALKABLE_RECTS) {
+  for (let ix = Math.floor(r.minX / WALK_CELL); ix <= Math.floor((r.maxX - 1e-6) / WALK_CELL); ix++) {
+    for (let iz = Math.floor(r.minZ / WALK_CELL); iz <= Math.floor((r.maxZ - 1e-6) / WALK_CELL); iz++) {
+      const k = ix * 100000 + iz;
+      if (!WALK_GRID.has(k)) WALK_GRID.set(k, []);
+      WALK_GRID.get(k).push(r);
+    }
+  }
+}
+function blockAt(x, z) {
+  for (const r of WALK_GRID.get(Math.floor(x / WALK_CELL) * 100000 + Math.floor(z / WALK_CELL)) || []) {
+    if (x >= r.minX && x <= r.maxX && z >= r.minZ && z <= r.maxZ) return PAVEMENT;
+  }
+  return null;
+}
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Extent: the whole snapshot (the outer band included)
 // ---------------------------------------------------------------------------------------------------------------------
 const [B_MIN_X, B_MIN_Z, B_MAX_X, B_MAX_Z] = P.meta.bounds;
 const MANHATTAN_COASTLINE = toPts(GEO.manhattan);
-const ISLAND_BOUNDS = { minX: B_MIN_X, maxX: B_MAX_X, minZ: B_MIN_Z, maxZ: B_MAX_Z, sidewalkHeight: 0.15, waterLevel: -1.5 };
+const ISLAND_BOUNDS = { minX: B_MIN_X, maxX: B_MAX_X, minZ: B_MIN_Z, maxZ: B_MAX_Z, sidewalkHeight: 0, waterLevel: -1.5 };
 function getIslandBoundsAtZ() {
   return { westX: B_MIN_X, eastX: B_MAX_X };
 }
@@ -228,6 +248,7 @@ export {
   PARKED,
   ISLAND_BOUNDS,
   BLOCKS,
+  WALKABLE_RECTS,
   CUT_Z,
   SIGNAL_TIMING,
   streetZ,
