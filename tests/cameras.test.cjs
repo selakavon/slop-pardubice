@@ -59,7 +59,7 @@ function cameraHarness(entity = {
   window.innerHeight = 900;
   const { CameraSystem } = loadModule(source, {
     globals: { window, document },
-    imports: { 'three/webgpu': { Vector3, PerspectiveCamera }, './landmarks.js': {} }
+    imports: { 'three/webgpu': { Vector3, PerspectiveCamera } }
   });
   const camera = new CameraSystem(canvas, { getActiveEntity: () => entity });
   return {
@@ -181,7 +181,7 @@ test('mouse orbit and wheel zoom retain their behavior and bounds', () => {
   close(h.camera.zoomMultiplier, 2.4);
 });
 
-for (const preset of ['chase', 'observatory', 'drone']) {
+for (const preset of ['chase', 'zamek', 'drone']) {
   test(`teleport after driving, orbiting and ${preset} snaps to a fresh chase view`, () => {
     const h = cameraHarness();
     h.entity.speed = 45;
@@ -239,4 +239,25 @@ test('teleport releases every camera pointer and ignores old gestures before acc
   h.pointer(h.canvas, 'pointermove', 3, 610);
   close(h.camera.orbitYawOffset, -0.065);
   assert.equal(h.camera.isDragging, true);
+});
+
+test('the scenic cameras look at Pardubice from open air inside the map', async () => {
+  const { loadBuildings, insideBuilding } = require('./helpers/pardubice-buildings.cjs');
+  const { PARDUBICE } = await import('../js/pardubice-geodata.js');
+  const buildings = loadBuildings();
+  const [minX, minZ, maxX, maxZ] = PARDUBICE.meta.bounds;
+  const h = cameraHarness();
+  const scenic = ['brana', 'pernstynske', 'zamek', 'chrudimka', 'drone'];
+  for (const id of scenic) {
+    h.camera.setCameraPreset(id, true);
+    for (const t of [0, 7, 31]) {
+      h.camera.update(1 / 60, t);
+      const p = h.camera.currentPos;
+      assert.ok(p.x > minX && p.x < maxX && p.z > minZ && p.z < maxZ, `${id} at ${p.x.toFixed(0)}, ${p.z.toFixed(0)} is over the map`);
+      const below = buildings.filter((b) => insideBuilding(b, p.x, p.z));
+      assert.ok(below.every((b) => p.y > b.height + 2), `${id} is not inside a building`);
+    }
+  }
+  assert.deepEqual(['centralPark', 'fifthAve', 'timesSquare', 'chryslerGCT', 'observatory', 'bryantPark', 'waterfront']
+    .filter((id) => source.includes(`'${id}'`)), [], 'no New York views remain');
 });

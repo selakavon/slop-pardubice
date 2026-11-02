@@ -1,5 +1,4 @@
 import * as THREE from 'three/webgpu';
-import { bryantParkLawn } from './landmarks.js';
 
 // Chase, action, cockpit, fixed-location and aerial cameras, with mouse/touch orbit and zoom.
 
@@ -7,13 +6,10 @@ const CAMERA_PRESETS = [
   { id: 'chase',       name: '3rd-Person Chase',         category: 'follow', fov: 56 },
   { id: 'action',      name: 'Low-Angle Action',         category: 'follow', fov: 60 },
   { id: 'pov',         name: 'First-Person / Cockpit',   category: 'follow', fov: 68 },
-  { id: 'centralPark', name: 'Central Park Oasis',       category: 'scenic', fov: 52 },
-  { id: 'fifthAve',    name: '5th Ave & Empire State',   category: 'scenic', fov: 48 },
-  { id: 'timesSquare', name: 'Times Square Crossroads',  category: 'scenic', fov: 58 },
-  { id: 'chryslerGCT', name: '42nd St · Chrysler & GCT', category: 'scenic', fov: 50 },
-  { id: 'observatory', name: 'Empire State 86th Deck',   category: 'scenic', fov: 52 },
-  { id: 'bryantPark',  name: 'Bryant Park & NYPL',       category: 'scenic', fov: 52 },
-  { id: 'waterfront',  name: 'East River & Skyline',     category: 'scenic', fov: 46 },
+  { id: 'brana',       name: 'Zelená brána',             category: 'scenic', fov: 50 },
+  { id: 'pernstynske', name: 'Pernštýnské náměstí',      category: 'scenic', fov: 52 },
+  { id: 'zamek',       name: 'Zámek Pardubice',          category: 'scenic', fov: 50 },
+  { id: 'chrudimka',   name: 'Chrudimka & Staré Město',  category: 'scenic', fov: 48 },
   { id: 'drone',       name: 'Auto-Director Aerial',     category: 'scenic', fov: 50 }
 ];
 
@@ -253,74 +249,50 @@ class CameraSystem {
         break;
       }
 
-      case 'centralPark': {
-        // Above the southern canopy, looking across The Pond toward the park and skyline.
-        const sway = Math.sin(elapsed * 0.22) * 3.5;
-        desiredPos.set(-70.0 + sway, 26.0, -1425.0);
-        desiredLook.set(-250.0, 6.5, -1690.0);
-        break;
-      }
-
-      case 'fifthAve': {
-        // 5th Avenue & 42nd St looking South down the 5th Ave canyon toward the Empire State Building
-        const sway = Math.sin(elapsed * 0.25) * 1.8;
-        desiredPos.set(0.0 + sway, 6.5, -20.0);
-        desiredLook.set(-60.0, 150.0, 686.0);
-        break;
-      }
-
-      case 'timesSquare': {
-        // Times Square & Broadway looking across Duffy Square red steps and One Times Square billboards
-        const sway = Math.sin(elapsed * 0.3) * 3.0;
-        desiredPos.set(-603.0 + sway, 5.5, -290.0);
-        desiredLook.set(-566.0, 40.0, -40.0);
-        break;
-      }
-
-      case 'chryslerGCT': {
-        // Park Ave & 42nd St intersection looking straight at Grand Central, MetLife, and Chrysler Building Crown
-        const sway = Math.cos(elapsed * 0.22) * 2.5;
-        desiredPos.set(300.0 + sway, 9.5, 95.0);
-        desiredLook.set(470.0, 120.0, -50.0);
-        break;
-      }
-
-      case 'observatory': {
-        // Empire State Building 86th Floor Deck looking North-East across Midtown skyline
-        const pan = Math.sin(elapsed * 0.18) * 80.0;
-        desiredPos.set(-58.0, 322.0, 660.0);
-        desiredLook.set(420.0 + pan, 150.0, -200.0);
-        break;
-      }
-
-      case 'bryantPark': {
-        // Inside Bryant Park Great Lawn looking East toward NYPL portico, One Vanderbilt & Chrysler Building
+      // Fixed views of Pardubice (world metres, origin at Zelená brána); above the roofs except the street-level gate view
+      case 'brana': {
+        // náměstí Republiky, looking up at Zelená brána's tower
         const sway = Math.sin(elapsed * 0.25) * 1.5;
-        const lawn = bryantParkLawn || { minX: -260, maxX: -150, minZ: 40, maxZ: 120, top: 1.3 };
-        const lz = (lawn.minZ + lawn.maxZ) * 0.5;
-        desiredPos.set(lawn.minX + 18.0, lawn.top + 1.7, lz + sway);
-        desiredLook.set(lawn.maxX + 260.0, 70.0, lz - 60.0);
+        desiredPos.set(-62.0, 4.0, 8.0 + sway);
+        desiredLook.set(0.0, 30.0, 0.0);
         break;
       }
 
-      case 'waterfront': {
-        // Over the shimmering East River looking across the FDR Drive, Queensboro Bridge & Midtown Skyline
-        const drift = Math.sin(elapsed * 0.15) * 40.0;
-        desiredPos.set(1640.0, 60.0, 60.0 + drift);
-        desiredLook.set(150.0, 150.0, -150.0);
+      case 'pernstynske': {
+        // High over the square's south-east corner, looking across it toward the castle
+        const sway = Math.sin(elapsed * 0.2) * 4.0;
+        desiredPos.set(60.0 + sway, 36.0, -10.0);
+        desiredLook.set(10.0, 6.0, -80.0);
+        break;
+      }
+
+      case 'zamek': {
+        // Above the moat garden east of the castle, looking at its courtyard ranges
+        const sway = Math.sin(elapsed * 0.18) * 6.0;
+        desiredPos.set(120.0, 50.0, -250.0 + sway);
+        desiredLook.set(-95.0, 10.0, -315.0);
+        break;
+      }
+
+      case 'chrudimka': {
+        // Over the river, looking back across Tyršovy sady to the old town
+        const drift = Math.sin(elapsed * 0.15) * 20.0;
+        desiredPos.set(226.0 + drift, 40.0, -396.0);
+        desiredLook.set(-20.0, 20.0, -60.0);
         break;
       }
 
       case 'drone': {
+        // Circling the centre of the map, between the old town and třída Míru
         const angle = elapsed * 0.07 + 0.65;
-        const radius = 720.0 + Math.sin(elapsed * 0.23) * 140.0;
-        const alt = 330.0 + Math.cos(elapsed * 0.19) * 90.0;
+        const radius = 520.0 + Math.sin(elapsed * 0.23) * 100.0;
+        const alt = 220.0 + Math.cos(elapsed * 0.19) * 60.0;
         desiredPos.set(
-          Math.cos(angle) * radius + 60.0,
+          Math.cos(angle) * radius - 400.0,
           alt,
-          Math.sin(angle) * radius + 250.0
+          Math.sin(angle) * radius + 50.0
         );
-        desiredLook.set(60.0, 160.0, 250.0);
+        desiredLook.set(-400.0, 20.0, 50.0);
         break;
       }
     }
