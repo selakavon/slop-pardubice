@@ -88,7 +88,7 @@ test('each OSM traffic signal marks the road-graph junction it controls', () => 
 
 test('traffic can circulate through most of the drivable network', async () => {
   // js/road-network.js keeps only the largest strongly connected set of edges; the OSM graph's own largest set holds
-  // 1832 of its 2017 links, so curbs at the junctions must leave room for the turns
+  // 1291 of its 1465 links, so the pavements must not cut the network up
   const { buildRoadNetwork } = await import('../js/road-network.js');
   const log = console.info;
   console.info = () => {};

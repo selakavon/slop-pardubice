@@ -90,3 +90,20 @@ test('structures lower than 2 m are not buildings', () => {
   const shed = way({ building: 'shed' }, [[20, 0], [30, 0], [30, 10], [20, 0]]);
   assert.deepEqual(parseOsm(osm(slab, shed)).buildings.map((b) => b.h), [6]);
 });
+
+test('tunnels are not on the surface; gateways and open underpasses are', () => {
+  const tunnel = way({ highway: 'service', tunnel: 'yes', layer: '-1', name: 'ramp' }, [[0, 0], [30, 0]]);
+  // a road in a cutting under the railway (Jana Palacha) and a passage through a building (Zelená brána's) are at street level
+  const cutting = way({ highway: 'secondary', layer: '-1', name: 'Jana Palacha' }, [[0, 10], [30, 10]]);
+  const gateway = way({ highway: 'footway', tunnel: 'building_passage', name: 'gateway' }, [[0, 20], [30, 20]]);
+  assert.deepEqual(parseOsm(osm(tunnel, cutting, gateway)).roads.map((r) => r.name), ['Jana Palacha', 'gateway']);
+});
+
+test('driveways, parking aisles and drive-throughs are left to the player', () => {
+  for (const service of ['driveway', 'parking_aisle', 'drive-through']) {
+    const { roads } = parseOsm(osm(way({ highway: 'service', service }, [[0, 0], [30, 0]])));
+    assert.equal(isDrivable(roads[0]), false, service);
+  }
+  const { roads } = parseOsm(osm(way({ highway: 'service', service: 'alley' }, [[0, 0], [30, 0]])));
+  assert.equal(isDrivable(roads[0]), true, 'an alley is a street');
+});

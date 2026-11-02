@@ -27,10 +27,12 @@ const ROAD_DEFAULTS = {
 const DRIVABLE = new Set(['primary', 'secondary', 'tertiary', 'unclassified', 'residential', 'living_street', 'service']);
 const RESTRICTED = new Set(['no', 'private', 'permissive', 'delivery', 'permit', 'destination']);
 
-// May simulated traffic use this road? Pedestrian zones & access-restricted streets (the old town's living streets are
-// tagged motor_vehicle=permissive/delivery/permit) are left to the player.
+// May simulated traffic use this road? Pedestrian zones, access-restricted streets (the old town's living streets are
+// tagged motor_vehicle=permissive/delivery/permit) and private service ways (driveways, parking aisles) are left to the
+// player.
+const PRIVATE_SERVICE = new Set(['driveway', 'parking_aisle', 'drive-through']);
 export function isDrivable(road) {
-  if (road.area || !DRIVABLE.has(road.kind)) return false;
+  if (road.area || !DRIVABLE.has(road.kind) || PRIVATE_SERVICE.has(road.tags?.service)) return false;
   const a = road.access || {};
   return !['access', 'vehicle', 'motor_vehicle'].some((k) => RESTRICTED.has(a[k]));
 }
@@ -142,7 +144,10 @@ export function parseOsm(json) {
       out.trolleybusRoutes.push({ ref: t.ref || '', name: t.name || '', ways: (e.members || []).filter((m) => m.type === 'way').map((m) => m.ref) });
       continue;
     }
-    if (e.type === 'way' && t.highway && ROAD_DEFAULTS[t.highway.replace(/_link$/, '')] && e.geometry?.length > 1) {
+    // Tunnels (underground ramps, enclosed underpasses) are not part of the street-level map; a passage through a
+    // building (Zelená brána's) and a road in an open cutting (layer -1, no tunnel) are
+    const underground = !!t.tunnel && t.tunnel !== 'no' && t.tunnel !== 'building_passage';
+    if (e.type === 'way' && t.highway && !underground && ROAD_DEFAULTS[t.highway.replace(/_link$/, '')] && e.geometry?.length > 1) {
       const kind = t.highway.replace(/_link$/, '');
       const [w, lanes] = ROAD_DEFAULTS[kind];
       const dir = t.oneway === '-1' ? -1 : /^(yes|true|1)$/.test(t.oneway || '') || t.junction === 'roundabout' ? 1 : 0;
