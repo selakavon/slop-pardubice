@@ -101,7 +101,7 @@ const PARK = /^(park|garden|playground)$/;
 const GREEN = /^(grass|forest|recreation_ground)$/;
 
 export function parseOsm(json) {
-  const out = { buildings: [], roads: [], water: [], parks: [], trees: [], signals: [], crossings: [], trolleybusRoutes: [], named: new Map() };
+  const out = { buildings: [], roads: [], water: [], parks: [], squares: [], trees: [], signals: [], crossings: [], trolleybusRoutes: [], named: new Map() };
   for (const e of json.elements) {
     const t = e.tags || {};
     if (t.name && !out.named.has(t.name)) {
@@ -118,7 +118,9 @@ export function parseOsm(json) {
     }
     if (t.building && !(/^(construction|ruins)$/.test(t.building) && !t.name)) {
       const polygons = polygonsOf(e);
-      if (polygons.length) out.buildings.push({ id: `${e.type}/${e.id}`, name: t.name || '', tags: t, ...(({ h, source }) => ({ h, heightSource: source }))(buildingHeight(t)), polygons });
+      const { h, source } = buildingHeight(t);
+      // Slabs & pads tagged under 2 m read as ground, not buildings
+      if (polygons.length && h >= 2) out.buildings.push({ id: `${e.type}/${e.id}`, name: t.name || '', tags: t, h, heightSource: source, polygons });
       continue;
     }
     if (t.natural === 'water' || t.waterway === 'riverbank') {
@@ -129,6 +131,11 @@ export function parseOsm(json) {
     if (PARK.test(t.leisure || '') || GREEN.test(t.landuse || '')) {
       const polygons = polygonsOf(e);
       if (polygons.length) out.parks.push({ name: t.name || '', kind: t.leisure || t.landuse, polygons });
+      continue;
+    }
+    if (t.highway === 'pedestrian' && (e.type === 'relation' || t.area === 'yes')) {
+      const polygons = polygonsOf(e);
+      if (polygons.length) out.squares.push({ name: t.name || '', polygons });
       continue;
     }
     if (e.type === 'relation' && t.route === 'trolleybus') {

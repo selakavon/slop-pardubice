@@ -3,6 +3,7 @@
   way[building]; relation[building];
   way["building:part"]; relation["building:part"];
   way[highway];
+  relation[highway=pedestrian]; relation[place=square];
   node[highway~"^(traffic_signals|crossing|stop|give_way)$"];
   way[natural=water]; relation[natural=water];
   way[waterway~"^(river|riverbank|canal|stream)$"]; relation[waterway~"^(river|riverbank)$"];

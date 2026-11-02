@@ -73,3 +73,20 @@ test('oneway=-1 gives dir -1 and lanes/width tags override defaults', () => {
   const [x, z] = roads[0].pts[1];
   assert.ok(Math.abs(x - 30) < 0.05 && Math.abs(z) < 0.05);
 });
+
+test('pedestrian areas become squares with their polygons', () => {
+  const ring = [[0, 0], [30, 0], [30, 30], [0, 30], [0, 0]].map(([e, n]) => at(e, n));
+  const rel = { type: 'relation', id: 7, tags: { type: 'multipolygon', highway: 'pedestrian', name: 'Pernštýnské náměstí' },
+    members: [{ type: 'way', role: 'outer', geometry: ring }] };
+  const areaWay = way({ highway: 'pedestrian', area: 'yes', name: 'Karlovina' }, [[100, 0], [120, 0], [120, 20], [100, 0]]);
+  const { squares, roads } = parseOsm(osm(rel, areaWay));
+  assert.deepEqual(squares.map((s) => s.name).sort(), ['Karlovina', 'Pernštýnské náměstí']);
+  assert.equal(squares[0].polygons[0].outer.length, 5);
+  assert.equal(roads.length, 0, 'areas are not road ribbons');
+});
+
+test('structures lower than 2 m are not buildings', () => {
+  const slab = way({ building: 'industrial', height: '0.4' }, [[0, 0], [10, 0], [10, 10], [0, 0]]);
+  const shed = way({ building: 'shed' }, [[20, 0], [30, 0], [30, 10], [20, 0]]);
+  assert.deepEqual(parseOsm(osm(slab, shed)).buildings.map((b) => b.h), [6]);
+});
