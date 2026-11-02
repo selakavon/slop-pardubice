@@ -79,3 +79,23 @@ test('preset and map teleports share arrival resets and mark the resolved landin
   assert.equal(map.waypoint.z, landed.z);
   assert.equal(map.waypoint.name, `${landed.x}, ${landed.z}`);
 });
+
+test('teleports land off the carriageways with room for the body', () => {
+  const buildings = loadBuildings();
+  const segDist = (x, z, ax, az, bx, bz) => {
+    const dx = bx - ax, dz = bz - az, t = Math.max(0, Math.min(1, ((x - ax) * dx + (z - az) * dz) / (dx * dx + dz * dz || 1)));
+    return Math.hypot(ax + t * dx - x, az + t * dz - z);
+  };
+  for (const [name, p] of Object.entries(TELEPORT_LOCATIONS)) {
+    for (const r of PARDUBICE.roads.filter((r) => r.drivable)) {
+      for (let i = 2; i < r.pts.length; i += 2) {
+        assert.ok(segDist(p.x, p.z, r.pts[i - 2], r.pts[i - 1], r.pts[i], r.pts[i + 1]) >= r.width / 2 + 0.5, `${name} is in the lanes of ${r.name || r.kind}`);
+      }
+    }
+    let nearest = Infinity;
+    for (const b of buildings) for (const poly of b.polygons) for (const ring of [poly.outer, ...poly.holes]) {
+      for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) nearest = Math.min(nearest, segDist(p.x, p.z, ring[j].x, ring[j].z, ring[i].x, ring[i].z));
+    }
+    assert.ok(nearest >= 0.6, `${name} is ${nearest.toFixed(2)} m from a wall`);
+  }
+});

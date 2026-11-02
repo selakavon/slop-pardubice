@@ -168,7 +168,8 @@ const TELEPORT_LOCATIONS = {
   zamek: { x: -20.4, z: -329, heading: facing(-20.4, -329, at('zámek Pardubice')) },
   // the pedestrian stretch, looking back toward the gate
   mir: { x: -218, z: 96, heading: facing(-218, 96, gate) },
-  divadlo: { x: -14.9, z: 92.1, heading: facing(-14.9, 92.1, at('Východočeské divadlo')) },
+  // on the theatre's pavement, across náměstí Republiky's carriageway from the old spot
+  divadlo: { x: -14.9, z: 101, heading: facing(-14.9, 101, at('Východočeské divadlo')) },
   // náměstí Jana Pernera, the station forecourt
   nadrazi: { x: -1556.5, z: 577, heading: 0 },
   tyrsovy: { x: -146, z: -566.2, heading: Math.PI }
