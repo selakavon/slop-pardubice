@@ -19,6 +19,7 @@ import { NYCMapSystem } from './nyc-map.js';
 import { setupSceneCulling, updateSceneCulling } from './scene-culling.js';
 import { CityAudioSystem } from './audio-system.js';
 import { detectGraphicsProfile } from './graphics-profile.js';
+import { perfRunFromSearch, transferredKB, buildPerfReport, PerfHud } from './perf-hud.js';
 
 // Application setup, shader warm-up and frame loop.
 
@@ -677,6 +678,13 @@ async function initApp() {
   markInit('compile');
   await showLoadingStage('Preparing shadows and the first frame...');
 
+  // ?perf=1: a 10-minute performance run, from the moment the city is on screen (perf-hud.js)
+  const perfRun = perfRunFromSearch(window.location.search);
+  window.slopPerf = { report: null };
+  let perfHud = null;
+  let loadMs = 0;
+  let perfInitTimings = '';
+
   // 6. Animation Loop
   let lastTime = performance.now();
   let elapsed = 0;
@@ -752,11 +760,38 @@ async function initApp() {
       Promise.resolve(device && device.queue.onSubmittedWorkDone()).catch(() => {}).then(() => {
         markInit('gpu');
         console.log(`[init] ${initTimings.join(', ')}`);
+        perfInitTimings = initTimings.join(', ');
         initTimings = null;
         if (loadingOverlay) loadingOverlay.classList.add('hidden');
+        loadMs = performance.now(); // since navigation start, so downloads count too
+        if (perfRun) {
+          perfHud = new PerfHud(document, perfRun);
+          perfHud.start();
+        }
         audioSystem.ready = true;
         setLoadingProgress(1);
       });
+    }
+
+    if (perfHud && perfHud.frame(now, renderer)) {
+      const report = buildPerfReport({
+        summary: perfHud.stats.summary(),
+        profile,
+        backend,
+        loadMs,
+        transferKB: transferredKB(),
+        initTimings: perfInitTimings,
+        renderInfo: perfHud.renderInfo(),
+        env: {
+          userAgent: navigator.userAgent,
+          devicePixelRatio: window.devicePixelRatio,
+          viewport: [window.innerWidth, window.innerHeight],
+          drawingBuffer: [renderer.domElement.width, renderer.domElement.height]
+        }
+      });
+      window.slopPerf.report = report;
+      console.log('[perf]', JSON.stringify(report.summary.pass), report);
+      perfHud.finish(report);
     }
 
     // Telemetry uses wall time, not the clamped simulation step, so slow frames and high-refresh displays report

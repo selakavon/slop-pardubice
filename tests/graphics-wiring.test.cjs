@@ -68,6 +68,19 @@ test('post-processing without bloom or reflections', () => {
   assert.deepEqual(record, ['bloom'], 'bloom stays on by default');
 });
 
+test('main runs the perf harness only with ?perf', () => {
+  const main = read('js/main.js');
+  assert.match(main, /const perfRun = perfRunFromSearch\(window\.location\.search\)/);
+  assert.match(main, /if \(perfRun\)[\s\S]{0,200}new PerfHud\(document, perfRun\)/);
+  assert.match(main, /perfHud && perfHud\.frame\(now, renderer\)/);
+  assert.match(main, /window\.slopPerf = \{ report: null \}/);
+  // load time is taken when the loading overlay hides, before initTimings is cleared
+  const hide = main.indexOf("loadingOverlay.classList.add('hidden')");
+  const load = main.indexOf('loadMs = performance.now()');
+  assert.ok(load > 0 && Math.abs(hide - load) < 400, 'load time stamped at the overlay hide');
+  assert.ok(main.indexOf('perfInitTimings = initTimings.join') < main.indexOf('initTimings = null'));
+});
+
 test('without SSR no material keeps an SSR G-buffer output', () => {
   // Decal and water materials write zero normal & metalRough so SSR sees what lies beneath. Without the scene pass's
   // MRT those extra outputs no longer match the framebuffer, and WebGL rejects the draws.
