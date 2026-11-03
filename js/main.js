@@ -18,6 +18,7 @@ import { LightingSystem } from './lighting.js';
 import { NYCMapSystem } from './nyc-map.js';
 import { setupSceneCulling, updateSceneCulling } from './scene-culling.js';
 import { CityAudioSystem } from './audio-system.js';
+import { detectGraphicsProfile } from './graphics-profile.js';
 
 // Application setup, shader warm-up and frame loop.
 
@@ -50,15 +51,18 @@ async function initApp() {
 
   await showLoadingStage('Initializing graphics...');
 
-  // 1. Initialize Three.js WebGPURenderer with 32-bit float reversedDepthBuffer
+  // 1. Initialize Three.js WebGPURenderer with 32-bit float reversedDepthBuffer. Phones and tablets get a cheaper
+  //    graphics profile; URL parameters override any of its knobs (graphics-profile.js)
+  const profile = detectGraphicsProfile();
   const renderer = new THREE.WebGPURenderer({
-    antialias: true,
+    antialias: profile.antialias,
+    forceWebGL: profile.forceWebGL,
     powerPreference: 'high-performance',
     reversedDepthBuffer: true
   });
-  renderer.setPixelRatio(1.0);
+  renderer.setPixelRatio(profile.pixelRatio);
   renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.enabled = profile.shadows;
   renderer.lighting = new ClusteredLighting(256, 32, 28, 48);
   container.appendChild(renderer.domElement);
 
@@ -73,11 +77,14 @@ async function initApp() {
 
   await renderer.init();
   markInit('renderer');
+  const backend = renderer.backend.isWebGPUBackend ? 'WebGPU' : 'WebGL';
+  window.slopGraphics = { profile, backend };
+  console.log(`[graphics] ${profile.id}${profile.overrides.length ? ` (overrides: ${profile.overrides.join(', ')})` : ''} ${backend}`);
 
   // 2. Scene, atmosphere and lighting
   await showLoadingStage('Creating sky and environment lighting...');
   const scene = new THREE.Scene();
-  const lightingSystem = new LightingSystem(scene, renderer);
+  const lightingSystem = new LightingSystem(scene, renderer, { shadows: profile.shadows, shadowTile: profile.shadowTile });
   markInit('lighting');
 
   // 3. Build Manhattan Geography, Iconic Landmarks, Blocks, Street Details & Traffic
@@ -93,7 +100,7 @@ async function initApp() {
   const allColliders = [...landmarkColliders, ...cityBlocks.colliders, ...(cityGrid.colliders || [])];
 
   await showLoadingStage('Placing trees, streetlights and street furniture...');
-  const streetDetails = buildStreetDetails(scene, allColliders);
+  const streetDetails = buildStreetDetails(scene, allColliders, { treeDrawScale: profile.treeDrawScale });
   markInit('streetDetails');
   await showLoadingStage('Creating traffic and pedestrian routes...');
   // Buildings turned along non-grid streets have oriented colliders whose world bounds reach past their lots: they stay
@@ -103,7 +110,7 @@ async function initApp() {
     ...cityGrid.footprints,
     ...streetDetails.footprints,
     ...allColliders.filter((c) => !c.obb && (c.minY ?? 0) < 3.5)
-  ], streetDetails.signalIntersections);
+  ], streetDetails.signalIntersections, { cars: profile.cars, pedestrians: profile.pedestrians });
   markInit('traffic');
   const highwayTraffic = createHighwayTraffic(scene, cityGrid.highwayLanes);
   await showLoadingStage('Adding road markings...');
@@ -173,7 +180,7 @@ async function initApp() {
   const cullingRoots = ['ManhattanCityBlocks', 'ManhattanStreetDetails', 'ManhattanLandmarks', 'RoadMarkings']
     .map((name) => scene.getObjectByName(name))
     .filter(Boolean);
-  setupSceneCulling(scene, cullingRoots, lightingSystem.sunLight.shadow);
+  setupSceneCulling(scene, cullingRoots, profile.shadows ? lightingSystem.sunLight.shadow : null);
 
   // Initialize static world matrices once, including the chunks and shadow proxies created above.
   // Crowd, tree and building-detail animation changes instance/pose buffers, not Object3D transforms.
@@ -197,41 +204,52 @@ async function initApp() {
   // them spares the GPU writing 3 x 4 samples per pixel to memory every frame (transient, memoryless attachments where
   // the browser supports them). The multisampled depth stays stored: SSR reads it.
   scenePass.renderTarget.storeMultisampledColorBuffer = false;
-  const ssrFade = smoothstep(360.0, 180.0, positionView.z.negate());
+  // Without SSR (the phone profile) the scene pass renders colour only: no normal or metal/roughness attachments
   const maxSSRRoughness = 0.75;
-  const sceneMRT = mrt({
+  const sceneMRT = profile.ssr ? mrt({
     output: output,
     normal: normalView,
-    metalRough: vec2(roughness.lessThan(maxSSRRoughness).select(metalness.mul(ssrFade), 0), roughness)
-  });
-  sceneMRT.setBlendMode('normal', new THREE.BlendMode(THREE.MaterialBlending));
-  sceneMRT.setBlendMode('metalRough', new THREE.BlendMode(THREE.MaterialBlending));
-  scenePass.setMRT(sceneMRT);
+    metalRough: vec2(roughness.lessThan(maxSSRRoughness).select(metalness.mul(smoothstep(360.0, 180.0, positionView.z.negate())), 0), roughness)
+  }) : null;
+  let reflections = null;
+  if (sceneMRT) {
+    sceneMRT.setBlendMode('normal', new THREE.BlendMode(THREE.MaterialBlending));
+    sceneMRT.setBlendMode('metalRough', new THREE.BlendMode(THREE.MaterialBlending));
+    scenePass.setMRT(sceneMRT);
 
+    const scenePassDepth = scenePass.getTextureNode('depth');
+    const scenePassNormal = scenePass.getTextureNode('normal');
+    const scenePassMetalRough = scenePass.getTextureNode('metalRough');
+    const ssrPass = ssr(scenePass.getTextureNode('output'), scenePassDepth, scenePassNormal, {
+      metalnessNode: scenePassMetalRough.r,
+      roughnessNode: scenePassMetalRough.g,
+      camera: cameraSystem.camera
+    });
+    ssrPass.resolutionScale = 0.5;
+    ssrPass.blurQuality = 1;
+    ssrPass.maxDistance.value = 42;
+    ssrPass.thickness.value = 0.85;
+    // Fewer coarse steps, then refine detected hits to keep reflection edges precise.
+    ssrPass.quality.value = 0.25;
+    ssrPass.binaryRefine = true;
+    ssrPass.intensity.value = 0.50;
+    ssrPass.screenEdgeFadeBlack = true;
+
+    // Roughness mip blur must not spread reflections back onto matte or nonreflective surfaces.
+    const reflectionMask = scenePassMetalRough.r.greaterThan(0).select(smoothstep(maxSSRRoughness, 0.55, scenePassMetalRough.g), 0);
+    reflections = ssrPass.mul(reflectionMask);
+  }
+  if (!sceneMRT) {
+    // Decal and water materials write their own SSR G-buffer outputs (tsl-materials.js, _transparentEffectMRT). With
+    // no MRT on the scene pass they would draw into attachments that don't exist, which WebGL rejects.
+    scene.traverse((o) => {
+      for (const m of Array.isArray(o.material) ? o.material : o.material ? [o.material] : []) {
+        if (m.mrtNode) m.mrtNode = null;
+      }
+    });
+  }
   const scenePassColor = scenePass.getTextureNode('output');
-  const scenePassDepth = scenePass.getTextureNode('depth');
-  const scenePassNormal = scenePass.getTextureNode('normal');
-  const scenePassMetalRough = scenePass.getTextureNode('metalRough');
-
-  const ssrPass = ssr(scenePassColor, scenePassDepth, scenePassNormal, {
-    metalnessNode: scenePassMetalRough.r,
-    roughnessNode: scenePassMetalRough.g,
-    camera: cameraSystem.camera
-  });
-  ssrPass.resolutionScale = 0.5;
-  ssrPass.blurQuality = 1;
-  ssrPass.maxDistance.value = 42;
-  ssrPass.thickness.value = 0.85;
-  // Fewer coarse steps, then refine detected hits to keep reflection edges precise.
-  ssrPass.quality.value = 0.25;
-  ssrPass.binaryRefine = true;
-  ssrPass.intensity.value = 0.50;
-  ssrPass.screenEdgeFadeBlack = true;
-
-  // Roughness mip blur must not spread reflections back onto matte or nonreflective surfaces.
-  const reflectionMask = scenePassMetalRough.r.greaterThan(0).select(smoothstep(maxSSRRoughness, 0.55, scenePassMetalRough.g), 0);
-  const reflections = ssrPass.mul(reflectionMask);
-  const colorGrade = createPostProcessing(renderer, scenePassColor, reflections);
+  const colorGrade =createPostProcessing(renderer, scenePassColor, reflections, { bloom: profile.bloom });
   const renderPipeline = new THREE.RenderPipeline(renderer, colorGrade.outputNode);
 
   // 6. Wire UI Controls (Strictly using safe DOM APIs: textContent, classList, addEventListener)
@@ -625,7 +643,7 @@ async function initApp() {
     await showLoadingStage(`Compiling scene shaders... 0 / ${jobs.length} batches`);
     setLoadingProgress(0);
     renderer.setRenderTarget(scenePass.renderTarget);
-    renderer.setMRT(sceneMRT);
+    if (sceneMRT) renderer.setMRT(sceneMRT);
     const compile = async (object) => {
       // Each compile starts in a task of its own: compileAsync() keeps one precompilation state on the renderer,
       // which must not be mid-step for two of them in the same microtask checkpoint
