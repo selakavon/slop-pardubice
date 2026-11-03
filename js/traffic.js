@@ -103,8 +103,8 @@ function createBusDestinationTexture() {
 
 const clamp = (x, lo, hi) => Math.max(lo, Math.min(hi, x));
 
-function createTrafficSystem(scene, sidewalks, obstacles, signalIntersections, { cars = 200, pedestrians = 340 } = {}) {
-  const NUM_CARS = cars; // the graphics profile sizes the fleet (graphics-profile.js)
+function createTrafficSystem(scene, sidewalks, obstacles, signalIntersections, { cars: carCount = 200, pedestrians = 340 } = {}) {
+  const NUM_CARS = carCount; // the graphics profile sizes the fleet (graphics-profile.js)
   const group = new THREE.Group();
   group.name = 'ManhattanTrafficAndPedestrians';
   let collisionListener = null;

@@ -34,6 +34,6 @@ test('the pedestrian crowd has the requested size', () => {
 test('traffic takes its car count from the caller', () => {
   const src = readFileSync(join(__dirname, '../js/traffic.js'), 'utf8');
   assert.doesNotMatch(src, /^const NUM_CARS\b/m, 'no module-level car count');
-  assert.match(src, /function createTrafficSystem\(scene, sidewalks, obstacles, signalIntersections, \{ cars = 200, pedestrians = 340 \} = \{\}\)/);
+  assert.match(src, /function createTrafficSystem\(scene, sidewalks, obstacles, signalIntersections, \{ cars: carCount = 200, pedestrians = 340 \} = \{\}\)/);
   assert.match(src, /createPedestrianSystem\(network, \{[^}]*count: pedestrians/);
 });
