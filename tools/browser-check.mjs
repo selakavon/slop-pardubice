@@ -46,6 +46,7 @@ async function runCase(c) {
     await page.goto(baseUrl.replace(/\/$/, '') + c.path);
     await page.waitForSelector('#loading-overlay.hidden', { state: 'attached', timeout: CASE_TIMEOUT });
     result.loadS = (Date.now() - started) / 1000;
+    await page.waitForTimeout(3000); // the loading overlay fades out
     const graphics = await page.evaluate(() => window.slopGraphics && {
       profile: window.slopGraphics.profile.id, backend: window.slopGraphics.backend
     });

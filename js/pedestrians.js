@@ -974,7 +974,9 @@ class PersonCrowd {
     this.updates = 0;
     const levels = Number.isFinite(farDistance) ? [1, 0] : [1];
     this.lods = levels.map((detail) => {
-      const pose = attributeArray(maxCount * STRIDE, 'vec4').toReadOnly();
+      // Read at computed indices (bone pairs), which the WebGL 2 fallback can only do through a texture (PBO); without
+      // it three binds the buffer as a per-vertex attribute far shorter than the mesh. No effect under WebGPU.
+      const pose = attributeArray(maxCount * STRIDE, 'vec4').setPBO(true).toReadOnly();
       const mesh = new THREE.Mesh(buildPersonGeometry(detail), createPersonMaterial(pose, detail));
       mesh.name = detail ? 'PeopleNear' : 'PeopleFar';
       mesh.count = 1; // one (degenerate) person until warm-up finishes, so the pipelines compile up front
@@ -1009,6 +1011,7 @@ class PersonCrowd {
             attr.clearUpdateRanges();
             attr.addUpdateRange(0, STRIDE * 4);
             attr.needsUpdate = true;
+            if (attr.pbo) attr.pbo.needsUpdate = true;
             l.hasZero = true;
           }
           l.mesh.count = 1;
@@ -1026,6 +1029,8 @@ class PersonCrowd {
       attr.clearUpdateRanges();
       attr.addUpdateRange(0, l.count * STRIDE * 4);
       attr.needsUpdate = true;
+      // Under WebGL the shader reads the PBO texture, which three refreshes only from compute output, not CPU writes
+      if (attr.pbo) attr.pbo.needsUpdate = true;
     }
   }
 }

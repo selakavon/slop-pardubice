@@ -129,11 +129,13 @@ const tslStub = {
     };
     const storage = {
       value,
+      isPBO: false,
       toReadOnly() { return storage; },
+      setPBO(v) { storage.isPBO = v; return storage; },
       element(idxNode) {
         return new TNode(() => {
           const i = (arr(idxNode)[0] | 0) * 4;
-          return [array[i], array[i + 1], array[i + 2], array[i + 3]];
+          return [value.array[i], value.array[i + 1], value.array[i + 2], value.array[i + 3]];
         });
       }
     };
@@ -457,6 +459,34 @@ test('PersonCrowd keeps 1 warm-up instance for 2 updates, then hides empty LODs 
   assert.equal(crowd.meshes[0].count, 1);
   assert.equal(crowd.meshes[1].visible, false);
   assert.equal(crowd.meshes[1].count, 0);
+});
+
+test('pose buffers read through a texture under WebGL, re-uploaded whenever poses change', () => {
+  // three's WebGL backend only reads storage elements at computed indices from a PBO texture when isPBO is set;
+  // otherwise it binds the buffer as a per-vertex attribute (one person's 31 vec4s against ~2,000 vertices)
+  const crowd = new PersonCrowd(4, { farDistance: 34 });
+  for (const l of crowd.lods) assert.equal(l.pose.isPBO, true);
+
+  // What GLSLNodeBuilder.setupPBO does on first compile: a padded copy of the array, and a texture sharing it
+  const near = crowd.lods[0].pose.value;
+  const padded = new Float32Array(near.array.length + 64);
+  near.array = padded;
+  let textureUploads = 0;
+  near.pbo = { image: { data: padded }, set needsUpdate(v) { if (v) textureUploads++; } };
+
+  const rig = new PersonRig({ seed: 1.5 });
+  rig.reset(0, 0, 0, () => 0, null);
+  for (let frame = 0; frame < 3; frame++) {
+    crowd.begin();
+    crowd.add(rig, 5);
+    crowd.end();
+  }
+  assert.equal(textureUploads, 3, 'one texture upload per frame with people');
+  assert.ok(padded.some((v) => v !== 0), 'poses land in the array the texture reads');
+
+  crowd.begin();
+  crowd.end();
+  assert.equal(textureUploads, 3, 'no upload once the LOD is empty and hidden');
 });
 
 test('buildPersonGeometry assigns constant partId across every triangle so flat/interpolated part varyings never bleed', () => {
