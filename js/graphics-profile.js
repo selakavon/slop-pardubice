@@ -38,7 +38,8 @@ const oneOf = (values) => (v) => {
   return values.includes(n) ? n : undefined;
 };
 
-// URL key -> [profile field, parser returning undefined for an invalid value]
+// URL key -> [profile field, parser returning undefined for an invalid value]. Cars and pedestrians start at 1: their
+// instance and pose buffers are sized from them, and a zero-size GPU buffer is invalid.
 const KNOBS = {
   pr: ['pixelRatio', number(0.5, 3)],
   aa: ['antialias', flag],
@@ -47,8 +48,8 @@ const KNOBS = {
   shadowTile: ['shadowTile', oneOf([512, 1024, 2048, 3072])],
   ssr: ['ssr', flag],
   bloom: ['bloom', flag],
-  cars: ['cars', number(0, DESKTOP_PROFILE.cars, true)],
-  peds: ['pedestrians', number(0, DESKTOP_PROFILE.pedestrians, true)],
+  cars: ['cars', number(1, DESKTOP_PROFILE.cars, true)],
+  peds: ['pedestrians', number(1, DESKTOP_PROFILE.pedestrians, true)],
   trees: ['treeDrawScale', number(0.25, 1)]
 };
 

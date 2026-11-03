@@ -5,7 +5,8 @@ under ~20 s on a normal mobile connection. The Android phone stands in for the i
 an iPhone 17 very likely does too, but that is an inference, not a measurement.
 
 How to measure: open the site with `?perf=1`, play for 10 minutes, then copy the JSON from the result panel. The
-settings and URL overrides are described in the README ("Performance check").
+settings and URL overrides are described in the README ("Performance check"). Turn off battery saver / Low Power Mode first: it caps the
+frame rate at 30. A second counts as slow below 29 fps, which allows for frame-pacing jitter on a 30 Hz-locked device.
 
 ## Real devices
 

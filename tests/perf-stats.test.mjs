@@ -96,3 +96,28 @@ test('warm-up is skipped and recording stops at the duration', () => {
   assert.equal(stats.done, true);
   near(s.frames, 3600, 2, 'frames');
 });
+
+test('a steady 30 fps with frame-time jitter passes', () => {
+  // A device locked to 30 Hz (e.g. iOS Low Power Mode): 33.3 ms frames, +-1 ms
+  const stats = new FrameStats({ warmupS: 0 });
+  let t = 0;
+  stats.frame(t);
+  for (let i = 0; i < 600 * 30 + 30; i++) {
+    t += 1000 / 30 + (i % 2 ? 1 : -1) * ((i * 7919) % 10) / 10;
+    stats.frame(t);
+  }
+  const s = stats.summary();
+  near(s.fpsAvg, 30, 0.1, 'average');
+  assert.equal(s.secondsBelow30, 0);
+  assert.equal(s.pass, true);
+});
+
+test('a two-second freeze counts as slow seconds', () => {
+  const stats = new FrameStats({ durationS: 60, warmupS: 0 });
+  stats.frame(0);
+  let t = run(stats, 0, 20, 60);
+  t += 2000;
+  stats.frame(t);
+  run(stats, t, 40, 60);
+  assert.equal(stats.summary().secondsBelow30, 2);
+});

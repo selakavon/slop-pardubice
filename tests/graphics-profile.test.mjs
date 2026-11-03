@@ -71,3 +71,12 @@ test('profiles are frozen', () => {
   p.cars = 1;
   assert.equal(phone().cars, 80);
 });
+
+test('zero cars or pedestrians is not allowed', () => {
+  // the instance and pose buffers are sized from these: a zero-size GPU buffer is invalid
+  const p = desktop('?cars=0&peds=0');
+  assert.equal(p.cars, 200);
+  assert.equal(p.pedestrians, 340);
+  assert.deepEqual(p.overrides, []);
+  assert.equal(desktop('?cars=1&peds=1').cars, 1);
+});
