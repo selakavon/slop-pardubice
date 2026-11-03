@@ -101,7 +101,7 @@ function createWalkSignalMaterial(clock) {
   return mat;
 }
 
-function buildStreetDetails(scene, colliders = []) {
+function buildStreetDetails(scene, colliders = [], { treeDrawScale = 1 } = {}) {
   const group = new THREE.Group();
   group.name = 'ManhattanStreetDetails';
 
@@ -904,7 +904,7 @@ function buildStreetDetails(scene, colliders = []) {
     return out;
   }
   for (const tree of sidewalkTreePositions) treePositions.push(tree);
-  const treeField = createTreeField(scene, treePositions, colliders);
+  const treeField = createTreeField(scene, treePositions, colliders, { drawScale: treeDrawScale });
   group.add(treeField.group);
   sidewalkTreePositions = sidewalkTreePositions.filter((t) => treeField.sites.has(t));
   console.info(`[streetDetails] ${treeField.stats.trees} trees (${sidewalkTreePositions.length} street trees)`);

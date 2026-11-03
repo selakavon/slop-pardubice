@@ -4,14 +4,14 @@ import { PersonCrowd, PersonRig, PEDESTRIAN_DIVE_DURATION } from './pedestrians.
 
 // Local pedestrian population: connected walks, curb queues, conversations and player avoidance.
 // Traffic supplies crossing permissions and view checks; this system owns the crowd and its animation.
-const NUM_PEDS = 340;
 const PED_RADIUS = 320;
 const NEAR_RADIUS = 350;
 const PED_SPAWN_DISTANCE = 150;
 const PED_AVOID_INTERVAL = 0.12;
 const clamp = (x, lo, hi) => Math.max(lo, Math.min(hi, x));
 
-function createPedestrianSystem(network, { player, nearEdges, nearSignals, mayCross, walkOn, visible, nearView }) {
+function createPedestrianSystem(network, { player, nearEdges, nearSignals, mayCross, walkOn, visible, nearView, count = 340 }) {
+  const NUM_PEDS = count;
   let clock = 0;
   let focusX = 0, focusZ = 140;
   let hasView = false;

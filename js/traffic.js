@@ -28,7 +28,6 @@ import {
 // Cars and buses follow the road graph, obey signals, yield at crossings and react to collisions.
 // Vehicles replenish around the player; pedestrian-system.js manages the nearby walking population.
 
-const NUM_CARS = 200;
 const NUM_BUSES = 12;
 
 // Intelligent Driver Model: max acceleration, comfortable braking, time headway, standstill gap; the sideways
@@ -104,7 +103,8 @@ function createBusDestinationTexture() {
 
 const clamp = (x, lo, hi) => Math.max(lo, Math.min(hi, x));
 
-function createTrafficSystem(scene, sidewalks, obstacles, signalIntersections) {
+function createTrafficSystem(scene, sidewalks, obstacles, signalIntersections, { cars = 200, pedestrians = 340 } = {}) {
+  const NUM_CARS = cars; // the graphics profile sizes the fleet (graphics-profile.js)
   const group = new THREE.Group();
   group.name = 'ManhattanTrafficAndPedestrians';
   let collisionListener = null;
@@ -433,7 +433,7 @@ function createTrafficSystem(scene, sidewalks, obstacles, signalIntersections) {
   const nearEdges = [];
   const nearSignals = [];
   const pedestrianSystem = createPedestrianSystem(network, {
-    player, nearEdges, nearSignals, mayCross, walkOn, visible, nearView
+    player, nearEdges, nearSignals, mayCross, walkOn, visible, nearView, count: pedestrians
   });
   group.add(...pedestrianSystem.meshes);
 

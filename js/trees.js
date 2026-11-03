@@ -806,13 +806,13 @@ function buildTreeGeometries(speciesIndex, variant, tileMeters) {
 // 5. TREE FIELD: per-tree level of detail, with spatial cells culled separately in the view and shadow passes
 // =====================================================================================================================
 const TREE_CELL_SIZE = 200;
-const LOD_NEAR = 105; // full detail within (m)
-const LOD_MID = 420; // coarse cards & branches within; whole-crown cards beyond
+const BASE_LOD_NEAR = 105; // full detail within (m)
+const BASE_LOD_MID = 420; // coarse cards & branches within; whole-crown cards beyond
 const LOD_HYSTERESIS = 6;
 // Draw distance per tier (0 park & plaza, 1 avenue & esplanade, 2 cross-street); at street level everything beyond
 // LOW_CUTOFF is behind the buildings anyway
-const MAX_DIST = [3000, 1600, 950];
-const LOW_CUTOFF = 1150;
+const BASE_MAX_DIST = [3000, 1600, 950];
+const BASE_LOW_CUTOFF = 1150;
 
 function hashPos(x, y, z) {
   const s = Math.sin(x * 127.1 + y * 311.7 + z * 74.7) * 43758.5453;
@@ -862,7 +862,12 @@ function createTreeClearance(colliders) {
  * `update(cameraPosition)` from the frame loop to keep each tree's level of detail up to date. Returns
  * { group, material, atlas, sites (accepted placements), update(cameraPosition) }.
  */
-function createTreeField(_scene, sites, colliders = []) {
+function createTreeField(_scene, sites, colliders = [], { drawScale = 1 } = {}) {
+  // Phones draw trees closer in (graphics-profile.js); hysteresis stays in metres
+  const LOD_NEAR = BASE_LOD_NEAR * drawScale;
+  const LOD_MID = BASE_LOD_MID * drawScale;
+  const MAX_DIST = BASE_MAX_DIST.map((d) => d * drawScale);
+  const LOW_CUTOFF = BASE_LOW_CUTOFF * drawScale;
   const group = new THREE.Group();
   group.name = 'Trees';
   const atlas = createLeafAtlas();

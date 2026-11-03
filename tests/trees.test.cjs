@@ -532,3 +532,19 @@ test('createTreeField leaves scene.onBeforeRender untouched and matches per-tree
     `expected exactly 1 Math.sqrt per cell (${cellCount}, 0 per-tree Math.sqrt), got ${sqrtCalls}`
   );
 });
+
+test('trees draw closer with a smaller draw scale', () => {
+  // One cross-street tree (tier 2, drawn to 950 m at street level) seen from 700 m away
+  const sites = [{ x: 0, y: 0.2, z: 0, scale: 1, species: 0, tier: 2 }];
+  const drawn = (field) => field.meshes.reduce((n, m) => n + (m.visible ? m.count : 0), 0);
+  const full = createTreeField({}, sites, []);
+  const near = createTreeField({}, sites, [], { drawScale: 0.5 });
+  const eye = new Vector3(700, 3.2, 0);
+  full.update(eye);
+  near.update(eye);
+  assert.equal(drawn(full), 1, 'the default field draws it');
+  assert.equal(drawn(near), 0, 'a 0.5 scale cuts tier 2 off at 475 m');
+  const close = new Vector3(300, 3.2, 0);
+  near.update(close);
+  assert.equal(drawn(near), 1, 'and still draws it at 300 m');
+});
