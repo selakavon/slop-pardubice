@@ -46,3 +46,13 @@ test('the car and the bicycle wait within 15 m of the spawn, the car on a drivab
   });
   assert.ok(onCarriageway, 'the car stands on a drivable carriageway');
 });
+
+test('the page and README name Slop Pardubice and link to its own repo', () => {
+  const html = read('index.html');
+  assert.doesNotMatch(html, /Slop New York|Manhattan|mrdoob\/slop-newyork|>NY</);
+  assert.match(html, /href="https:\/\/github\.com\/selakavon\/slop-pardubice\/"/);
+  const readme = read('README.md');
+  assert.match(readme, /^# Slop Pardubice/);
+  assert.match(readme, /\[Try it live\]\(https:\/\/selakavon\.github\.io\/slop-pardubice\/\)/);
+  assert.match(readme, /mrdoob\/slop-newyork/, 'credits the base project');
+});

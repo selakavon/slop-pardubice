@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Slop Pardubice</title>
   <link rel="icon" href="data:," />
-  <meta name="description" content="Photorealistic GTA-style 3D Slop New York simulation built with Three.js WebGPURenderer and TSL shaders featuring complete Manhattan street map (125th St to Battery Park), third-person navigation (Person, Car, Cyclist, Helicopter), and 11 cinematic cameras at 60 FPS." />
+  <meta name="description" content="Slop Pardubice: central Pardubice in 3D, built with three.js WebGPURenderer and TSL. Walk, cycle, drive or fly from Zelená brána through the old town, the castle and třída Míru." />
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
   <!-- three.js r187 release (npm package, served by jsDelivr) -->
   <script type="importmap">
@@ -110,24 +110,24 @@
   <!-- Loading Screen -->
   <div id="loading-overlay" role="status" aria-live="polite">
     <div class="loader">
-      <span class="mta-bullet loader-bullet" aria-hidden="true">NY</span>
-      <div class="loader-title">Slop New York</div>
+      <span class="mta-bullet loader-bullet" aria-hidden="true">PA</span>
+      <div class="loader-title">Slop Pardubice</div>
       <div class="loader-track is-indeterminate" aria-hidden="true"><span id="loading-progress" class="loader-fill"></span></div>
       <div id="loading-status">Loading city code and data...</div>
     </div>
   </div>
 
   <!-- 3D WebGPU Viewport Container -->
-  <main id="canvas-container" aria-label="3D Interactive Slop New York Viewport"></main>
+  <main id="canvas-container" aria-label="3D Interactive Slop Pardubice Viewport"></main>
 
   <!-- Top-Left: Brand & Renderer Telemetry -->
   <header class="hud hud-top-left">
     <div class="panel brand">
-      <span class="mta-bullet" aria-hidden="true">NY</span>
+      <span class="mta-bullet" aria-hidden="true">PA</span>
       <div class="brand-titles">
         <div class="brand-heading">
-          <h1>Slop New York</h1>
-          <a class="repo-link" href="https://github.com/mrdoob/slop-newyork/" target="_blank" rel="noopener noreferrer" aria-label="Slop New York on GitHub (opens in a new tab)">GitHub <span aria-hidden="true">↗</span></a>
+          <h1>Slop Pardubice</h1>
+          <a class="repo-link" href="https://github.com/selakavon/slop-pardubice/" target="_blank" rel="noopener noreferrer" aria-label="Slop Pardubice on GitHub (opens in a new tab)">GitHub <span aria-hidden="true">↗</span></a>
         </div>
         <div class="brand-subtitle">three.js · WebGPU · TSL · <span id="hud-fps" class="fps-ok">60</span> fps</div>
       </div>
@@ -155,7 +155,7 @@
       <button id="btn-teleport" class="tool-btn" type="button" popovertarget="teleport-popover" title="Teleport the active player">
         <svg class="icon" aria-hidden="true"><use href="#i-pin"/></svg><span class="tool-label">Teleport</span><svg class="icon icon-sm" aria-hidden="true"><use href="#i-chevron-down"/></svg>
       </button>
-      <button id="btn-open-map" class="tool-btn" type="button" title="Full New York City street map [M]">
+      <button id="btn-open-map" class="tool-btn" type="button" title="Full Pardubice street map [M]">
         <svg class="icon" aria-hidden="true"><use href="#i-map"/></svg><span class="tool-label">Map</span><kbd>M</kbd>
       </button>
       <span class="toolbar-divider" aria-hidden="true"></span>
@@ -183,7 +183,7 @@
   <!-- Bottom-Left: Street-Name Signs & Live GPS Radar Minimap -->
   <div class="hud hud-bottom-left">
     <div id="hud-location" class="location" aria-live="off"></div>
-    <aside id="minimap-card" class="panel radar" aria-label="Live NYC Street Radar Minimap" title="Open the full New York City street map [M]">
+    <aside id="minimap-card" class="panel radar" aria-label="Live Pardubice street radar minimap" title="Open the full Pardubice street map [M]">
       <canvas id="minimap-canvas"></canvas>
       <span class="radar-north" aria-hidden="true">N</span>
       <kbd class="radar-key">M</kbd>
@@ -215,7 +215,7 @@
     <section id="hud-cluster" class="panel cluster" aria-label="Vehicle telemetry and camera">
       <div class="gauge">
         <div class="gauge-top">
-          <span id="hud-active-mode" class="gauge-label">NYC Yellow Taxi</span>
+          <span id="hud-active-mode" class="gauge-label">Pedestrian</span>
           <span class="gauge-alt"><span class="gauge-alt-label">Alt</span> <span id="hud-altitude">0</span> ft</span>
         </div>
         <div class="gauge-speed"><span id="hud-speed">0</span><span class="gauge-unit">mph</span></div>
@@ -255,7 +255,7 @@
     </div>
   </section>
 
-  <!-- All Cameras: 3 Follow Cameras + 7 Iconic NYC Vantage Cameras + Auto-Director Drone -->
+  <!-- All Cameras: follow cameras, Pardubice vantage points and the auto-director drone -->
   <div id="camera-popover" class="popover" popover data-side="above" data-anchor="hud-cluster" data-align="hud-cluster" aria-label="Multiple Camera Angles">
     <div class="pop-title">Follow</div>
     <button id="cam-chase" class="pop-item cam-btn active" data-camera="chase" type="button"><span class="pop-name">3rd-Person Chase</span><kbd>5</kbd></button>
@@ -272,18 +272,18 @@
     <button id="cam-drone" class="pop-item cam-btn" data-camera="drone" type="button"><span class="pop-name">Auto-Director Aerial</span></button>
   </div>
 
-  <!-- Full-Screen Interactive New York City Street Map ([M]) -->
-  <section id="fullmap-modal" class="fullmap-modal hidden" role="dialog" aria-modal="true" aria-label="Full New York City Interactive Street Map">
+  <!-- Full-Screen Interactive Pardubice Street Map ([M]) -->
+  <section id="fullmap-modal" class="fullmap-modal hidden" role="dialog" aria-modal="true" aria-label="Full Pardubice Interactive Street Map">
     <div id="fullmap-canvas-wrap" class="fullmap-canvas-wrap">
       <canvas id="fullmap-canvas"></canvas>
     </div>
 
     <div class="fullmap-header">
       <div class="panel fullmap-title">
-        <span class="mta-bullet" aria-hidden="true">NY</span>
+        <span class="mta-bullet" aria-hidden="true">PA</span>
         <div>
-          <h2>Manhattan Street Atlas</h2>
-          <p id="fullmap-player-info" class="fullmap-subtitle">You are at 5th Ave &amp; 35th St</p>
+          <h2>Pardubice Street Atlas</h2>
+          <p id="fullmap-player-info" class="fullmap-subtitle">You are at Zelená brána</p>
         </div>
       </div>
       <label class="panel fullmap-search-wrap">
@@ -296,7 +296,7 @@
     </div>
 
     <div class="map-controls">
-      <div class="panel map-compass" title="True north · Manhattan's street grid runs 29° east of it">
+      <div class="panel map-compass" title="True north is up">
         <svg viewBox="0 0 44 44" aria-hidden="true">
           <g id="map-compass-needle">
             <path d="M22 9.5 25.6 22h-7.2z" fill="#f05a4f"/>
@@ -311,7 +311,7 @@
       </div>
       <div class="panel map-zoom">
         <button id="map-center-player" class="icon-btn" type="button" title="Street view around you" aria-label="Center on player"><svg class="icon" aria-hidden="true"><use href="#i-locate"/></svg></button>
-        <button id="map-view-all" class="icon-btn" type="button" title="All of Manhattan (125th St to Battery Park)" aria-label="Fit all of Manhattan"><svg class="icon" aria-hidden="true"><use href="#i-fit"/></svg></button>
+        <button id="map-view-all" class="icon-btn" type="button" title="All of central Pardubice" aria-label="Fit all of central Pardubice"><svg class="icon" aria-hidden="true"><use href="#i-fit"/></svg></button>
       </div>
     </div>
 
