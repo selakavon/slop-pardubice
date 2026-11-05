@@ -28,4 +28,6 @@ explains how to install and run it.
 The project code is available under the [MIT License](LICENSE).
 
 Map data, buildings and trees: © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright), available
-under the Open Database License (ODbL). Third-party data and dependencies retain their respective licenses.
+under the Open Database License (ODbL). The landmarks and the hand-specified buildings were modelled from Wikimedia
+Commons photos, used as reference only; [CREDITS.md](CREDITS.md) lists every photo with its author and licence.
+Third-party data and dependencies retain their respective licenses.

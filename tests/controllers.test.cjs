@@ -25,6 +25,7 @@ function keyboardHarness(nyc = {}) {
   const document = { ...eventTarget(), hidden: false };
   const config = {
     streetZ: () => 0,
+    HELI_MAX_ALTITUDE: 380,
     isTypingInField: (event) => ['INPUT', 'SELECT'].includes(event.target?.tagName),
     ...nyc
   };

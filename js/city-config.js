@@ -232,7 +232,12 @@ function walkSignal(time, isAvenue) {
   return t < walk;
 }
 
+// Helicopter ceiling in metres. From much higher the edge of the map (bare ground beyond the snapshot) is obvious, so
+// the flight is capped (spec §5.12: cap the altitude rather than build more outer band)
+const HELI_MAX_ALTITUDE = 150;
+
 export {
+  HELI_MAX_ALTITUDE,
   AVENUES,
   ALL_AVENUES,
   CENTRAL_PARK_BOUNDS,

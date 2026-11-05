@@ -56,3 +56,14 @@ test('the page and README name Slop Pardubice and link to its own repo', () => {
   assert.match(readme, /\[Try it live\]\(https:\/\/selakavon\.github\.io\/slop-pardubice\/\)/);
   assert.match(readme, /mrdoob\/slop-newyork/, 'credits the base project');
 });
+
+test('the helicopter ceiling comes from city-config', () => {
+  const controllers = read('js/controllers.js');
+  assert.equal((controllers.match(/HELI_MAX_ALTITUDE/g) || []).length >= 3, true, 'imported and used in both places');
+  assert.doesNotMatch(controllers, /\b380\b/);
+  assert.match(read('js/city-config.js'), /export const HELI_MAX_ALTITUDE = \d+;|HELI_MAX_ALTITUDE,/);
+});
+
+test('the README credits the photos', () => {
+  assert.match(read('README.md'), /\(CREDITS\.md\)/);
+});
