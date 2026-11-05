@@ -36,7 +36,7 @@ const OSM_ROOFS = { gabled: 'gabled', hipped: 'hipped', 'half-hipped': 'half-hip
 const GABLES = ['triangle', 'stepped', 'volute', 'attic', 'pediment'];
 const CORNICES = ['none', 'simple', 'rich'];
 const GROUNDS = ['plain', 'shops', 'arcade'];
-const AREAS = ['republiky', 'pernstynske', 'miru'];
+const AREAS = ['republiky', 'pernstynske', 'miru', 'landmark'];
 const GROUND_CODES = { plain: 0, shops: 1, arcade: 2, garage: 3 };
 export { GROUND_CODES };
 

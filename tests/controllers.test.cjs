@@ -730,3 +730,19 @@ test('ground modes stop at the water; the helicopter flies over it', () => {
     }
   }
 });
+
+test('a passage cut through a building lets bodies through it and nowhere else', () => {
+  const points = (values) => values.map(([x, z]) => ({ x, z }));
+  const collider = { minX: 0, maxX: 30, minZ: 0, maxZ: 30, maxY: 200, polygon: {
+    outer: points([[0, 0], [30, 0], [30, 30], [0, 30]]), holes: [] },
+  except: [{ outer: points([[13, -1], [17, -1], [17, 31], [13, 31]]), holes: [] }] };
+  for (const mode of ['person', 'car', 'cyclist']) {
+    const { controller, ent } = teleportHarness(mode, [{ ...collider }]);
+    ent.position.x = 15; ent.position.z = 3;
+    controller.resolveHorizontalCollision(ent.position, mode === 'person' ? 0.48 : 0.65, mode === 'car' ? ent : null);
+    assert.deepEqual([ent.position.x, ent.position.z], [15, 3], `${mode} walks the passage`);
+    ent.position.x = 5; ent.position.z = 3;
+    controller.resolveHorizontalCollision(ent.position, mode === 'person' ? 0.48 : 0.65, mode === 'car' ? ent : null);
+    assert.notDeepEqual([ent.position.x, ent.position.z], [5, 3], `${mode} is pushed out of the wing`);
+  }
+});

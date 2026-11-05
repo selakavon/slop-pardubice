@@ -53,5 +53,11 @@ export const BUILDING_SPECS = {
     roofColour: '#8e4a35', cornice: 'simple', photo: 'File:Pardubice, divadlo, od magistrátu.jpg' },
   // The low commercial pavilion east of the theatre
   'way/1355513256': { area: 'republiky', label: 'pavilion by the theatre', style: 'modern', render: '#bdb8ad', storeys: 2,
-    roof: 'flat', ground: 'shops', photo: 'File:Pardubice, náměstí Republiky, zastávka a divadlo.jpg' }
+    roof: 'flat', ground: 'shops', photo: 'File:Pardubice, náměstí Republiky, zastávka a divadlo.jpg' },
+  // --- Landmarks drawn by the generator ------------------------------------------------------------------------------
+  // Pardubice Castle (Renaissance, Vilém z Pernštejna): white render with sgraffito, dark slate roofs, attic gables;
+  // js/pardubice-landmark-models.js adds the gate passage, the two towers and the ramparts
+  'relation/104530': { area: 'landmark', label: 'zámek Pardubice', style: 'renaissance', render: '#efebe2', storeys: 3,
+    roof: 'skirt', roofColour: '#4a4e54', cornice: 'simple', gable: 'attic', ornament: 3,
+    photo: 'File:Pardubice Castle 01 (js).jpg' }
 };

@@ -64,7 +64,7 @@ function toGeometry(part, attributes) {
   return geometry;
 }
 
-function buildPardubiceBuildings(scene, { colliders: landmarkColliders = [], replaced = new Set() } = {}) {
+function buildPardubiceBuildings(scene, { colliders: landmarkColliders = [], replaced = new Set(), passages = new Map() } = {}) {
   const group = new THREE.Group();
   group.name = 'PardubiceBuildings';
   const ctx = createStyleContext(PARDUBICE);
@@ -73,7 +73,7 @@ function buildPardubiceBuildings(scene, { colliders: landmarkColliders = [], rep
   for (const b of REAL_BUILDINGS) {
     if (replaced.has(b.attrs.id)) continue;
     const facade = facadeFor(b, BUILDING_SPECS[b.attrs.id], ctx);
-    records.push({ ...b, facade, ...bounds(b.polygons[0].outer) });
+    records.push({ ...b, facade, ...bounds(b.polygons[0].outer), passages: passages.get(b.attrs.id) });
   }
   for (const r of records) { r.cx ??= (r.minX + r.maxX) / 2; r.cz ??= (r.minZ + r.maxZ) / 2; }
 
@@ -131,7 +131,8 @@ function buildPardubiceBuildings(scene, { colliders: landmarkColliders = [], rep
     const footprints = [];
     for (const polygon of r.polygons) {
       // Canopies only block above head height
-      colliders.push({ ...bounds(polygon.outer), minY: r.facade.style === 'canopy' ? r.facade.eave - CANOPY_THICKNESS : 0, maxY: top, polygon });
+      colliders.push({ ...bounds(polygon.outer), minY: r.facade.style === 'canopy' ? r.facade.eave - CANOPY_THICKNESS : 0, maxY: top, polygon,
+        ...(r.passages ? { except: r.passages.map((ps) => ps.polygon) } : {}) });
       footprints.push({ h: top, pts: polygon.outer, holes: polygon.holes });
     }
     allBlocks.push({ cx: r.cx, cz: r.cz, minX: r.minX, maxX: r.maxX, minZ: r.minZ, maxZ: r.maxZ, footprints });

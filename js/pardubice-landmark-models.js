@@ -329,6 +329,139 @@ export function grandModel(P, buildings) {
   return { name: 'Grand', rings: [ring], frame: identity, axis: ex, parts, colliders: [], replace: false };
 }
 
+// Pardubice Castle: the palace stays the generator's (a Renaissance tier-2 spec); this cuts the gate passage through
+// the south-east wing along the courtyard footway, adds the clock tower over that gate and the lantern tower over the
+// west wing, and rings the castle with the white rampart wall and its four round bastions, open wherever a path
+// crosses it. World coordinates (identity frame): parts are beams, cones and balls.
+const CASTLE_ID = 'relation/104530';
+const IDENTITY = { cx: 0, cz: 0, halfAlong: 0, halfAcross: 0 }, EAST = { ux: 1, uz: 0 };
+function segmentHit(ax, az, bx, bz, cx, cz, dx, dz) {
+  const rx = bx - ax, rz = bz - az, sx = dx - cx, sz = dz - cz, den = rx * sz - rz * sx;
+  if (Math.abs(den) < 1e-9) return null;
+  const t = ((cx - ax) * sz - (cz - az) * sx) / den, u = ((cx - ax) * rz - (cz - az) * rx) / den;
+  return t >= 0 && t <= 1 && u >= 0 && u <= 1 ? t : null;
+}
+const segDistance = (x, z, ax, az, bx, bz) => {
+  const dx = bx - ax, dz = bz - az, l2 = dx * dx + dz * dz;
+  const t = l2 ? Math.max(0, Math.min(1, ((x - ax) * dx + (z - az) * dz) / l2)) : 0;
+  return Math.hypot(x - ax - t * dx, z - az - t * dz);
+};
+// A box from a to b (centre line), `width` across, as a beam part and a collider polygon
+function wallPiece(a, b, width, y, surface) {
+  const len = Math.hypot(b.x - a.x, b.z - a.z), nx = -(b.z - a.z) / len, nz = (b.x - a.x) / len;
+  const h = width / 2;
+  return { kind: 'beam', a: { x: a.x - nx * h, z: a.z - nz * h }, b: { x: b.x - nx * h, z: b.z - nz * h }, out: width, ox: nx, oz: nz, y, surface };
+}
+function stripPolygon(a, b, width) {
+  const len = Math.hypot(b.x - a.x, b.z - a.z), nx = -(b.z - a.z) / len * width / 2, nz = (b.x - a.x) / len * width / 2;
+  return { outer: [{ x: a.x + nx, z: a.z + nz }, { x: b.x + nx, z: b.z + nz }, { x: b.x - nx, z: b.z - nz }, { x: a.x - nx, z: a.z - nz }], holes: [] };
+}
+
+export function castleModel(P, buildings) {
+  const record = buildings.find((b) => b.attrs.id === CASTLE_ID);
+  const poly = record.polygons[0];
+  const ring = poly.outer;
+  const eave = facadeFor(record, BUILDING_SPECS[CASTLE_ID], createStyleContext(P)).eave;
+  const inside = (x, z) => inRing(x, z, ring) && !poly.holes.some((h) => inRing(x, z, h));
+  const parts = [], colliders = [];
+
+  // Gate passage: the footway segment from a courtyard into the open
+  let gate = null;
+  for (const r of P.roads) {
+    for (let i = 0; i + 3 < r.pts.length; i += 2) {
+      const a = { x: r.pts[i], z: r.pts[i + 1] }, b = { x: r.pts[i + 2], z: r.pts[i + 3] };
+      const inHole = (p) => poly.holes.some((h) => inRing(p.x, p.z, h)), out = (p) => !inRing(p.x, p.z, ring);
+      if (inHole(a) && out(b)) gate = { a, b };
+      else if (inHole(b) && out(a)) gate = { a: b, b: a };
+    }
+  }
+  const passages = [];
+  let centre = { x: 0, z: 0 };
+  { const xs = ring.map((p) => p.x), zs = ring.map((p) => p.z); centre = { x: (Math.min(...xs) + Math.max(...xs)) / 2, z: (Math.min(...zs) + Math.max(...zs)) / 2 }; }
+  if (gate) {
+    const len = Math.hypot(gate.b.x - gate.a.x, gate.b.z - gate.a.z), ux = (gate.b.x - gate.a.x) / len, uz = (gate.b.z - gate.a.z) / len;
+    const a = { x: gate.a.x - ux * 2, z: gate.a.z - uz * 2 }, b = { x: gate.b.x + ux * 2, z: gate.b.z + uz * 2 };
+    passages.push({ a, b, width: 4, height: 4.5, polygon: stripPolygon(a, b, 4.4) });
+    // The tunnel: where the centre line runs inside the wing, side walls and a vault
+    let s0 = null, s1 = null;
+    const total = Math.hypot(b.x - a.x, b.z - a.z);
+    for (let s = 0; s <= total; s += 0.25) {
+      if (inside(a.x + ux * s, a.z + uz * s)) { s0 ??= s; s1 = s; }
+    }
+    if (s0 !== null) {
+      // Half a metre short of each façade, so the tunnel walls don't poke out of an oblique wall
+      const p0 = { x: a.x + ux * (s0 + 0.5), z: a.z + uz * (s0 + 0.5) }, p1 = { x: a.x + ux * (s1 - 0.5), z: a.z + uz * (s1 - 0.5) };
+      const nx = -uz, nz = ux;
+      for (const side of [-1, 1]) {
+        const off = (p) => ({ x: p.x + nx * side * 2.15, z: p.z + nz * side * 2.15 });
+        parts.push(wallPiece(off(p0), off(p1), 0.3, [0, 4.5], 'render'));
+      }
+      parts.push(wallPiece(p0, p1, 4.6, [4.5, 4.8], 'render'));
+      // The clock tower over the gate, on the outer façade
+      const tp = p1, tw = 7.5;
+      const tA = { x: tp.x - ux * tw, z: tp.z - uz * tw }, tB = { x: tp.x + ux * 0.3, z: tp.z + uz * 0.3 };
+      const tC = { x: (tA.x + tB.x) / 2, z: (tA.z + tB.z) / 2 };
+      parts.push(wallPiece(tA, tB, tw, [eave - 1, 22], 'render'), wallPiece(tA, tB, tw + 0.5, [22, 22.6], 'render'),
+        { kind: 'frustum', cs: tC.x, ct: tC.z, hs: 2.6, ht: 2.6, y: [22.6, 25.5], top: 1, surface: 'render' },
+        { kind: 'ball', cs: tC.x, ct: tC.z, y: 27, r: 2.4, surface: 'slate' },
+        { kind: 'frustum', cs: tC.x, ct: tC.z, hs: 0.9, ht: 0.9, y: [28.6, 30.2], top: 1, surface: 'render' },
+        { kind: 'ball', cs: tC.x, ct: tC.z, y: 31, r: 1.1, surface: 'slate' },
+        { kind: 'cone', cs: tC.x, ct: tC.z, r: 0.3, y: [31.8, 34], sides: 6, surface: 'slate' },
+        { kind: 'ball', cs: tC.x, ct: tC.z, y: 34.1, r: 0.2, surface: 'gold' });
+      // Clock faces on the tower's outer side
+      parts.push(wallPiece({ x: tB.x - nx * 1.3, z: tB.z - nz * 1.3 }, { x: tB.x + nx * 1.3, z: tB.z + nz * 1.3 }, 0.12, [18.5, 21.1], 'clock'));
+    }
+  }
+  // The lantern tower over the west wing: on the outer ring point furthest west, set back into the wing
+  const west = ring.reduce((m, p) => (p.x < m.x ? p : m), ring[0]);
+  const wc = { x: west.x + 9, z: west.z + 2 };
+  parts.push(wallPiece({ x: wc.x - 4.5, z: wc.z }, { x: wc.x + 4.5, z: wc.z }, 9, [eave - 1, 19.5], 'render'),
+    { kind: 'frustum', cs: wc.x, ct: wc.z, hs: 5, ht: 5, y: [19.5, 23], top: 0.45, surface: 'slate' },
+    { kind: 'frustum', cs: wc.x, ct: wc.z, hs: 1.4, ht: 1.4, y: [23, 25], top: 1, surface: 'render' },
+    { kind: 'ball', cs: wc.x, ct: wc.z, y: 26, r: 1.4, surface: 'slate' },
+    { kind: 'cone', cs: wc.x, ct: wc.z, r: 0.25, y: [27, 29], sides: 6, surface: 'slate' });
+
+  // Ramparts: the castle's rectangle grown by 26 m with a round bastion of radius 14 at each corner
+  const rect = minAreaRect(ring);
+  const A = rect.halfLong + 26, B = rect.halfShort + 26, R = 14;
+  const vx = -rect.uz, vz = rect.ux;
+  const W = (s, t) => ({ x: rect.cx + s * rect.ux + t * vx, z: rect.cz + s * rect.uz + t * vz });
+  const corners = [[-A, -B], [A, -B], [A, B], [-A, B]];
+  const path = [];
+  for (let k = 0; k < 4; k++) {
+    const [cs, ct] = corners[k], [ps, pt] = corners[(k + 3) % 4], [ns, nt] = corners[(k + 1) % 4];
+    const back = Math.atan2(pt - ct, ps - cs), fwd = Math.atan2(nt - ct, ns - cs);
+    // Sweep the 270° that lies outside the rectangle, from the incoming wall round to the outgoing one
+    let sweep = fwd - back;
+    while (sweep <= 0) sweep += 2 * Math.PI;
+    for (let i = 0; i <= 16; i++) {
+      const ang = back + sweep * (i / 16);
+      path.push(W(cs + R * Math.cos(ang), ct + R * Math.sin(ang)));
+    }
+  }
+  path.push(path[0]);
+  // Cut the wall into ≤ 5 m pieces; drop pieces in a path's way, in a building or in water
+  const crossings = P.roads.flatMap((r) => Array.from({ length: r.pts.length / 2 - 1 }, (_, i) => r.pts.slice(2 * i, 2 * i + 4)))
+    .filter(([ax, az]) => Math.hypot(ax - rect.cx, az - rect.cz) < A + B + 60);
+  const nearBuildings = buildings.filter((b) => b.attrs.id !== CASTLE_ID && b.polygons[0].outer.some((p) => Math.hypot(p.x - rect.cx, p.z - rect.cz) < A + B + 30));
+  const water = (P.water || []).flatMap((w) => w.polygons.map((pp) => pairs(pp[0])));
+  for (let i = 0; i + 1 < path.length; i++) {
+    const a = path[i], b = path[i + 1], len = Math.hypot(b.x - a.x, b.z - a.z), n = Math.max(1, Math.ceil(len / 5));
+    for (let k = 0; k < n; k++) {
+      const p = { x: a.x + (b.x - a.x) * (k / n), z: a.z + (b.z - a.z) * (k / n) };
+      const q = { x: a.x + (b.x - a.x) * ((k + 1) / n), z: a.z + (b.z - a.z) * ((k + 1) / n) };
+      const mx = (p.x + q.x) / 2, mz = (p.z + q.z) / 2;
+      const inPath = crossings.some(([ax, az, bx, bz]) => segmentHit(p.x, p.z, q.x, q.z, ax, az, bx, bz) !== null
+        || segDistance(mx, mz, ax, az, bx, bz) < 3.2 || segDistance(p.x, p.z, ax, az, bx, bz) < 2.2 || segDistance(q.x, q.z, ax, az, bx, bz) < 2.2);
+      if (inPath || nearBuildings.some((nb) => nb.polygons.some((pp) => inRing(mx, mz, pp.outer))) || water.some((w) => inRing(mx, mz, w))) continue;
+      parts.push(wallPiece(p, q, 0.8, [0, 2.8], 'render'), wallPiece(p, q, 1, [2.8, 3.1], 'tile'));
+      colliders.push({ ...collider(stripPolygon(p, q, 0.8), 0, 3.1), rampart: true });
+    }
+  }
+  return { name: 'zámek Pardubice', rings: [ring], frame: IDENTITY, axis: EAST, centre, parts, colliders, replace: false,
+    passages: gate ? new Map([[CASTLE_ID, passages]]) : new Map() };
+}
+
 // World bounds of a part list
 export function partsBounds(parts, frame, axis = { ux: 1, uz: 0 }) {
   let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity, maxY = -Infinity;
@@ -357,7 +490,7 @@ export function partsBounds(parts, frame, axis = { ux: 1, uz: 0 }) {
 // landmark with replace: true; the others add parts to a building the generator still draws)
 export function landmarkPlan(P, buildings) {
   const models = [gateModel(P, buildings), churchModel(P, buildings), bellTowerModel(P, buildings),
-    theatreModel(P, buildings), grandModel(P, buildings)];
+    theatreModel(P, buildings), grandModel(P, buildings), castleModel(P, buildings)];
   const replaced = new Set();
   for (const b of buildings) {
     const o = b.polygons[0].outer;
@@ -366,5 +499,8 @@ export function landmarkPlan(P, buildings) {
     const cx = (x0 + x1) / 2, cz = (z0 + z1) / 2;
     if (models.some((m) => m.replace && m.rings.some((ring) => inRing(cx, cz, ring)))) replaced.add(b.attrs.id);
   }
-  return { models, replaced };
+  // Passages the generator cuts through buildings it still draws (the castle gate), by OSM id
+  const passages = new Map();
+  for (const m of models) for (const [id, list] of m.passages || []) passages.set(id, [...(passages.get(id) || []), ...list]);
+  return { models, replaced, passages };
 }

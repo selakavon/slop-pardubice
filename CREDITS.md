@@ -55,3 +55,12 @@ its own licence. Thanks to the photographers.
 | [Pardubice, náměstí Republiky, zastávka a divadlo](https://commons.wikimedia.org/wiki/File:Pardubice,_n%C3%A1m%C4%9Bst%C3%AD_Republiky,_zast%C3%A1vka_a_divadlo.jpg) | ŠJů | CC BY 4.0 |
 | [Pardubice, náměstí Republiky, jízdní pruhy a divadlo](https://commons.wikimedia.org/wiki/File:Pardubice,_n%C3%A1m%C4%9Bst%C3%AD_Republiky,_j%C3%ADzdn%C3%AD_pruhy_a_divadlo.jpg) | ŠJů | CC BY 4.0 |
 | [Pardubice, divadlo, od magistrátu](https://commons.wikimedia.org/wiki/File:Pardubice,_divadlo,_od_magistr%C3%A1tu.jpg) | ŠJů | CC BY 4.0 |
+
+### Pardubice Castle
+
+| Photo | Author | Licence |
+|---|---|---|
+| [Pardubice Castle 01 (js)](https://commons.wikimedia.org/wiki/File:Pardubice_Castle_01_(js).jpg) | Jerzy Strzelecki | CC BY-SA 3.0 |
+| [Pardubice - View WNW towards Zámek Pardubice](https://commons.wikimedia.org/wiki/File:Pardubice_-_View_WNW_towards_Z%C3%A1mek_Pardubice,_Castle_enlarged_by_Vil%C3%A9m_z_Per%C5%A1tejna_-_Renaissance_architecture.jpg) | Txllxt TxllxT | CC BY-SA 4.0 |
+| [Pardubice - Zámek Pardubice - Ramparts View South - Renaissance architecture](https://commons.wikimedia.org/wiki/File:Pardubice_-_Z%C3%A1mek_Pardubice_-_Ramparts_View_South_-_Renaissance_architecture.jpg) | Txllxt TxllxT | CC BY-SA 4.0 |
+| [Böhmens Burgen, Vesten und Bergschlösser (Band VI., 1848) - Pardubice (půdorys)](https://commons.wikimedia.org/wiki/File:B%C3%B6hmens_Burgen,_Vesten_und_Bergschl%C3%B6sser_(Band_VI.,_1848)_-_Pardubice_(p%C5%AFdorys).jpg) | after Franz Alexander Heber | Public domain |

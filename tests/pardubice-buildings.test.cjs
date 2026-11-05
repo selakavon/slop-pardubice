@@ -12,7 +12,7 @@ test('Pardubice builds its own buildings', () => {
   assert.match(main, /buildPardubiceBuildings\(scene, landmarks\)/);
   assert.match(main, /const landmarks = buildLandmarks\(scene\)/);
   assert.doesNotMatch(main, /buildCityBlocks\(/);
-  assert.match(read('js/pardubice-landmarks.js'), /return { group, colliders, replaced };/);
+  assert.match(read('js/pardubice-landmarks.js'), /return { group, colliders, replaced, passages };/);
 });
 
 test('no New York building details in Pardubice', () => {

@@ -22,7 +22,8 @@ const inRing = (x, z, ring) => {
 };
 // Does a body (circle of radius r, from y0 to y1) at (x, z) hit a collider?
 const hits = (c, x, z, y0, y1, r = 0.3) => y1 > (c.minY ?? 0) && y0 < c.maxY
-  && [[0, 0], [r, 0], [-r, 0], [0, r], [0, -r]].some(([dx, dz]) => inRing(x + dx, z + dz, c.polygon.outer));
+  && [[0, 0], [r, 0], [-r, 0], [0, r], [0, -r]].some(([dx, dz]) => inRing(x + dx, z + dz, c.polygon.outer)
+    && !(c.polygon.holes || []).some((h) => inRing(x + dx, z + dz, h)));
 
 test('the gate passage is open on foot and by car, the piers are solid', () => {
   const gate = L.gateModel(P, buildings);
@@ -133,4 +134,47 @@ test('the church stands on its footprint with a ridge spire', () => {
   const lm = P.landmarks['Svatý Bartoloměj'];
   assert.ok(lm.x > b.minX && lm.x < b.maxX && lm.z > b.minZ && lm.z < b.maxZ);
   assert.ok(b.maxY > 40 && b.maxY < 52, `spire top ${b.maxY}`);
+});
+
+const castleBits = () => {
+  const plan = L.landmarkPlan(P, buildings);
+  const castle = plan.models.find((m) => m.name === 'zámek Pardubice');
+  // Building colliders as js/pardubice-buildings.js makes them, with the landmarks' passages cut out
+  const colliders = buildings.filter((b) => !plan.replaced.has(b.attrs.id)).flatMap((b) => b.polygons.map((polygon) => ({
+    minY: 0, maxY: 50, polygon, except: plan.passages.get(b.attrs.id)?.map((p) => p.polygon) })));
+  return { plan, castle, colliders: [...colliders, ...plan.models.flatMap((m) => m.colliders)] };
+};
+const blocked = (colliders, x, z) => colliders.some((c) => hits(c, x, z, 0, 1.9)
+  && !(c.except || []).some((e) => inRing(x, z, e.outer)));
+
+test('the castle courtyard can be entered', async () => {
+  const { BUILDING_SPECS } = await import('../js/pardubice-building-specs.js');
+  const { plan, castle, colliders } = castleBits();
+  assert.ok(castle, 'the castle is modelled');
+  assert.ok(!plan.replaced.has('relation/104530') && BUILDING_SPECS['relation/104530'], 'the generator draws it from a spec');
+  // From the courtyard out along the footway through the south-east wing, and 3 m beyond
+  const route = [[-107, -305], [-103, -324], [-94, -350], [-93, -353]];
+  for (let k = 0; k + 1 < route.length; k++) {
+    const [ax, az] = route[k], [bx, bz] = route[k + 1], n = Math.ceil(Math.hypot(bx - ax, bz - az));
+    for (let i = 0; i <= n; i++) {
+      const x = ax + (bx - ax) * (i / n), z = az + (bz - az) * (i / n);
+      assert.ok(!blocked(colliders, x, z), `blocked at (${x.toFixed(1)}, ${z.toFixed(1)})`);
+    }
+  }
+});
+
+test('the ramparts leave every path open', () => {
+  const { castle } = castleBits();
+  const walls = castle.colliders.filter((c) => c.rampart);
+  assert.ok(walls.length >= 20, `${walls.length} rampart segments`);
+  for (const r of P.roads) {
+    for (let i = 0; i + 3 < r.pts.length; i += 2) {
+      const [ax, az, bx, bz] = r.pts.slice(i, i + 4), n = Math.ceil(Math.hypot(bx - ax, bz - az));
+      if (Math.hypot(ax - castle.centre.x, az - castle.centre.z) > 160) continue;
+      for (let k = 0; k <= n; k++) {
+        const x = ax + (bx - ax) * (k / n), z = az + (bz - az) * (k / n);
+        assert.ok(!walls.some((c) => hits(c, x, z, 0, 1.9, 0.3)), `${r.kind} ${r.name} crosses the rampart at (${x.toFixed(1)}, ${z.toFixed(1)})`);
+      }
+    }
+  }
 });

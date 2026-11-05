@@ -28,7 +28,7 @@ import {
 import { PersonCrowd, PersonRig } from './pedestrians.js';
 import { HEADLIGHTS, createVehicleHeadlight, placeVehicleHeadlight } from './vehicle-lights.js';
 import { bryantParkLawn } from './landmarks.js';
-import { polygonContact } from './building-collision.js';
+import { polygonContact, polygonContains } from './building-collision.js';
 
 // Player models, animation and movement for walking, driving, cycling and flying.
 
@@ -86,6 +86,8 @@ function collisionBody(mode, radius, heading, margin = 0) {
 function buildingContact(c, x, y, z, body, contact) {
   if (y + body.bottom >= c.maxY || y + body.top <= (c.minY ?? 0)) return false;
   if (x + body.extX <= c.minX || x - body.extX >= c.maxX || z + body.extZ <= c.minZ || z - body.extZ >= c.maxZ) return false;
+  // A passage cut through a building (js/pardubice-landmark-models.js, e.g. the castle gate) is open ground
+  if (c.except && c.except.some((p) => polygonContains(p, x, z))) return false;
   if (c.polygon) return polygonContact(c.polygon, x, z, body, contact);
   const o = c.obb;
   const cs = o ? o.cs : 1, sn = o ? o.sn : 0;

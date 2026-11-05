@@ -130,16 +130,36 @@ export function buildingMeshData(records, { partyHeight, distanceToStreet, trian
           const kind = k ? KIND.rear : adjacentHeight > 0 ? KIND.lotLine : f.ground === 'shops' ? KIND.shop : KIND.front;
           const exposed = adjacentHeight > 0 ? Math.max(0, eave - adjacentHeight) : wallH;
           const reverse = (Math.abs(dz) >= Math.abs(dx) ? dz : dx) < 0;
-          const o = fa.position.length / 3;
-          const corners = [[a, GROUND_Y, 0], [b, GROUND_Y, 1], [a, eave, 0], [b, eave, 1]];
-          for (const [p, y, t] of corners) {
-            fa.position.push(p.x, y, p.z); fa.normal.push(onx, 0, onz);
-            fa.box.push(width, wallH, exposed, seed);
-            fa.facadeWall.push(reverse ? 1 - t : t, y === GROUND_Y ? wallH : 0, kind);
-            fa.facadeTint.push(...f.render); fa.facadeParams.push(...params);
+          // A quad of this wall from t0 to t1 along it and from y0 to y1
+          const quad = (t0, t1, y0, y1) => {
+            const o = fa.position.length / 3;
+            for (const [t, y] of [[t0, y0], [t1, y0], [t0, y1], [t1, y1]]) {
+              fa.position.push(a.x + dx * t, y, a.z + dz * t); fa.normal.push(onx, 0, onz);
+              fa.box.push(width, wallH, exposed, seed);
+              fa.facadeWall.push(reverse ? 1 - t : t, eave - y, kind);
+              fa.facadeTint.push(...f.render); fa.facadeParams.push(...params);
+            }
+            tri(fa, o, o + 1, o + 2, onx, 0, onz);
+            tri(fa, o + 2, o + 1, o + 3, onx, 0, onz);
+          };
+          // Passages (record.passages: centre line a→b, width, height) cut an opening where they cross this wall
+          const cuts = [];
+          for (const ps of record.passages || []) {
+            const ex = ps.b.x - ps.a.x, ez = ps.b.z - ps.a.z, den = dx * ez - dz * ex;
+            if (Math.abs(den) < 1e-9) continue;
+            const t = ((ps.a.x - a.x) * ez - (ps.a.z - a.z) * ex) / den, u = ((ps.a.x - a.x) * dz - (ps.a.z - a.z) * dx) / den;
+            if (t < 0 || t > 1 || u < 0 || u > 1) continue;
+            const sin = Math.abs(den) / (width * Math.hypot(ex, ez)), half = (ps.width / 2) / Math.max(sin, 0.2) / width;
+            cuts.push([Math.max(0, t - half), Math.min(1, t + half), Math.min(ps.height, eave)]);
           }
-          tri(fa, o, o + 1, o + 2, onx, 0, onz);
-          tri(fa, o + 2, o + 1, o + 3, onx, 0, onz);
+          cuts.sort((p, q) => p[0] - q[0]);
+          let from = 0;
+          for (const [c0, c1, h] of cuts) {
+            if (c0 > from) quad(from, c0, GROUND_Y, eave);
+            quad(c0, c1, h, eave);
+            from = Math.max(from, c1);
+          }
+          if (from < 1) quad(from, 1, GROUND_Y, eave);
         }
       });
 

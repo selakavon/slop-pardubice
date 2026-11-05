@@ -153,3 +153,23 @@ test('canopies are a slab with nothing underneath', () => {
   assert.ok(roof[0].normal.some((v, i) => i % 3 === 1 && v < 0), 'the slab has an underside');
   assert.ok(tops.get(r) < 4);
 });
+
+test('a passage opens the walls it crosses up to its height', () => {
+  const r = { ...withFacade(rect(-600, 300, 20, 10)), passages: [{ a: { x: -590, z: 295 }, b: { x: -590, z: 315 }, width: 4, height: 4.5 }] };
+  const { cells } = M.buildingMeshData([r], noNeighbours);
+  const f = parts(cells).facade[0];
+  // Is (x, y) on the z = 300 wall covered by a facade triangle?
+  const covered = (x, y) => {
+    for (let i = 0; i < f.index.length; i += 3) {
+      const v = [0, 1, 2].map((k) => f.position.slice(3 * f.index[i + k], 3 * f.index[i + k] + 3));
+      if (!v.every((p) => Math.abs(p[2] - 300) < 1e-6)) continue;
+      const s = (p, q) => (q[0] - p[0]) * (y - p[1]) - (q[1] - p[1]) * (x - p[0]);
+      const d = [s(v[0], v[1]), s(v[1], v[2]), s(v[2], v[0])];
+      if (d.every((e) => e >= -1e-9) || d.every((e) => e <= 1e-9)) return true;
+    }
+    return false;
+  };
+  assert.ok(!covered(-590, 2), 'the opening is open');
+  assert.ok(covered(-590, 6), 'the wall continues above it');
+  assert.ok(covered(-595, 2), 'the wall continues beside it');
+});

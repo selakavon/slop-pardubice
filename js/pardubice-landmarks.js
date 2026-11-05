@@ -100,7 +100,7 @@ function partGeometry(p) {
 
 // A clock face is a dark ring with a white dial just in front of it
 function expandParts(parts) {
-  return parts.flatMap((p) => (p.surface === 'clock'
+  return parts.flatMap((p) => (p.surface === 'clock' && p.kind === 'disc'
     ? [{ ...p, surface: 'dark' }, { ...p, r: p.r - 0.12, surface: 'clock',
       cs: p.cs + ({ '+s': 0.01, '-s': -0.01 }[p.face] || 0), ct: p.ct + ({ '+t': 0.01, '-t': -0.01 }[p.face] || 0) }]
     : [p]));
@@ -140,7 +140,7 @@ function signMesh(signs) {
 function buildPardubiceLandmarks(scene) {
   const group = new THREE.Group();
   group.name = 'PardubiceLandmarks';
-  const { models, replaced } = landmarkPlan(PARDUBICE, REAL_BUILDINGS);
+  const { models, replaced, passages } = landmarkPlan(PARDUBICE, REAL_BUILDINGS);
   const colliders = [];
   const signs = [];
   for (const m of models) {
@@ -159,7 +159,7 @@ function buildPardubiceLandmarks(scene) {
   const signsMesh = signMesh(signs);
   if (signsMesh) group.add(signsMesh);
   scene.add(group);
-  return { group, colliders, replaced };
+  return { group, colliders, replaced, passages };
 }
 
 export { buildPardubiceLandmarks, LANDMARK_SURFACES };
