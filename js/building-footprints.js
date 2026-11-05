@@ -99,4 +99,4 @@ function createBuildingFootprints(material, records, getNeighbours) {
   return group;
 }
 
-export { createBuildingFootprints };
+export { createBuildingFootprints, partyWallHeight };
