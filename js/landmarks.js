@@ -21,7 +21,7 @@ function buildLandmarks(scene) {
     const group = new THREE.Group();
     group.name = 'ManhattanLandmarks';
     scene.add(group);
-    return { group, colliders: [] };
+    return { group, colliders: [], replaced: new Set() };
   }
   const group = new THREE.Group();
   group.name = 'ManhattanLandmarks';

@@ -97,7 +97,8 @@ function createCzechFacadeMaterial() {
     const grain = noise2D(vec2(uCoord, vCoord).mul(1.7)).sub(0.5).mul(0.07).mul(grainFade);
     const weather = noise2D(vec2(uCoord.mul(0.08), vCoord.mul(0.05)).add(boxSeed)).sub(0.5).mul(0.1);
     const streaks = float(1).sub(smoothstep(0, 1.6, vCoord)).mul(0.08);   // splash dirt at the base
-    const base = mix(tint, tint.mul(0.84), back).mul(mix(float(1), float(0.94), blank));
+    // Render albedo: the palette colours scaled to a believable 0.85 so they don't wash out to white in sunlight
+    const base = mix(tint, tint.mul(0.84), back).mul(mix(float(1), float(0.94), blank)).mul(0.85);
     let wall = base.mul(float(1).add(grain).add(weather).sub(streaks));
     wall = mix(wall, trim, clamp(max(max(stringCourse, corniceBand), max(windowTrim, pilaster)).add(coping.mul(0.6)), 0, 1));
     wall = wall.mul(float(1).sub(rustication.mul(0.25))).mul(float(1).sub(joints.mul(0.28)));

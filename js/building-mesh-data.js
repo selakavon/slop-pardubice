@@ -7,7 +7,7 @@ const GROUND_Y = 0.22;
 const KIND = { shop: 0, front: 1, rear: 2, lotLine: 3 };   // tsl-materials.js WALL_KINDS
 const TRIM_WHITE = [0xf6 / 255, 0xf2 / 255, 0xea / 255];
 const BRICK = [0x8a / 255, 0x4b / 255, 0x3a / 255];
-const MEMBRANE = [0.36, 0.35, 0.33];
+const MEMBRANE = [0.3, 0.29, 0.28];
 const CORNICE = { simple: { h: 0.5, d: 0.35 }, rich: { h: 0.9, d: 0.6 } };
 const GABLE_OUT = 0.05;   // gable panels stand just proud of the wall
 
@@ -145,9 +145,11 @@ export function buildingMeshData(records, { partyHeight, distanceToStreet, trian
       if (roof.cap) {
         const [capOuter, ...capHoles] = roof.cap.rings;
         const capBase = ro.position.length / 3;
+        // A real flat roof is a grey membrane; the flat top of a pitched city-block roof reads as part of the roof
+        const capTint = roof.shape === 'flat' ? MEMBRANE : f.roof.colour.map((v) => v * 0.8);
         for (const p of roof.cap.rings.flat()) {
           ro.position.push(p.x, roof.cap.y, p.z); ro.normal.push(0, 1, 0); ro.uv.push(p.x, p.z);
-          ro.roofTint.push(...MEMBRANE, 0);
+          ro.roofTint.push(...capTint, 0);
         }
         for (const [i, j, k] of triangulate(capOuter, capHoles)) tri(ro, capBase + i, capBase + j, capBase + k, 0, 1, 0);
       }

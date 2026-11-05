@@ -6,7 +6,7 @@ import { ClusteredLighting } from 'three/addons/lighting/ClusteredLighting.js';
 import { getLocationLabel, isTypingInField, ROADS, NYC_LANDMARKS, TELEPORT_LOCATIONS, defaultSpawn } from './city-config.js';
 import { buildCityGrid } from './city-grid.js';
 import { buildLandmarks } from './landmarks.js';
-import { buildCityBlocks } from './buildings.js';
+import { buildPardubiceBuildings } from './pardubice-buildings.js';
 import { buildStreetDetails } from './street-details.js';
 import { createTrafficSystem, createHighwayTraffic } from './traffic.js';
 import { buildRoadPaint } from './road-paint.js';
@@ -93,10 +93,11 @@ async function initApp() {
   const cityGrid = buildCityGrid(scene);
   markInit('cityGrid');
   await showLoadingStage('Building landmarks...');
-  const { colliders: landmarkColliders } = buildLandmarks(scene);
+  const landmarks = buildLandmarks(scene);
+  const landmarkColliders = landmarks.colliders;
   markInit('landmarks');
   await showLoadingStage('Generating building footprints and facades...');
-  const cityBlocks = buildCityBlocks(scene, landmarkColliders);
+  const cityBlocks = buildPardubiceBuildings(scene, landmarks);
   markInit('blocks');
   const allColliders = [...landmarkColliders, ...cityBlocks.colliders, ...(cityGrid.colliders || [])];
 
@@ -178,7 +179,7 @@ async function initApp() {
   // Island-wide static geometry: chunk & distance-cull the small props, shadow stand-ins for the big casters
   // (scene-culling.js)
   await showLoadingStage('Preparing scene visibility and shadows...');
-  const cullingRoots = ['ManhattanCityBlocks', 'ManhattanStreetDetails', 'ManhattanLandmarks', 'RoadMarkings']
+  const cullingRoots = ['PardubiceBuildings', 'PardubiceLandmarks', 'ManhattanStreetDetails', 'ManhattanLandmarks', 'RoadMarkings']
     .map((name) => scene.getObjectByName(name))
     .filter(Boolean);
   setupSceneCulling(scene, cullingRoots, profile.shadows ? lightingSystem.sunLight.shadow : null);
@@ -192,7 +193,7 @@ async function initApp() {
     scene.getObjectByName('StreetClusteredLights'),
     ...Object.values(controllerManager.entities).map((entity) => entity.mesh),
     controllerManager.entities.cyclist.helmet
-  ];
+  ].filter(Boolean);
   scene.updateMatrixWorld(true);
   scene.matrixWorldAutoUpdate = false;
   markInit('culling');

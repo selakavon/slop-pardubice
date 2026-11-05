@@ -127,3 +127,18 @@ test('the whole city fits the phone budget', () => {
   console.log(`building triangles: ${total}`, byPart, `${cells.size} cells`);
   assert.ok(total < 450000, `${total} triangles`);
 });
+
+test('the flat top of a city-block roof takes the roof colour, not the membrane grey', () => {
+  const L = [{ x: 0, z: 0 }, { x: 30, z: 0 }, { x: 30, z: 12 }, { x: 12, z: 12 }, { x: 12, z: 30 }, { x: 0, z: 30 }];
+  const [x, z] = oldTown();
+  const r = withFacade({ height: 14, attrs: { ...ATTRS, roofShape: '' }, polygons: [{ outer: L.map((p) => ({ x: p.x + x, z: p.z + z })), holes: [] }] });
+  const { cells } = M.buildingMeshData([r], noNeighbours);
+  const roof = parts(cells).roof[0];
+  const capY = Math.max(...roof.position.filter((_, i) => i % 3 === 1));
+  const [cr, cg, cb] = r.facade.roof.colour;
+  for (let i = 0; i < roof.position.length / 3; i++) {
+    if (Math.abs(roof.position[3 * i + 1] - capY) > 1e-6) continue;
+    const [tr, tg, tb] = roof.roofTint.slice(4 * i, 4 * i + 3);
+    assert.ok(tr > tb + 0.05 && Math.abs(tr / cr - tb / cb) < 0.05 && Math.abs(tg / cg - tr / cr) < 0.05, `cap tint ${[tr, tg, tb]}`);
+  }
+});
