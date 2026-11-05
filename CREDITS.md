@@ -64,3 +64,22 @@ its own licence. Thanks to the photographers.
 | [Pardubice - View WNW towards Zámek Pardubice](https://commons.wikimedia.org/wiki/File:Pardubice_-_View_WNW_towards_Z%C3%A1mek_Pardubice,_Castle_enlarged_by_Vil%C3%A9m_z_Per%C5%A1tejna_-_Renaissance_architecture.jpg) | Txllxt TxllxT | CC BY-SA 4.0 |
 | [Pardubice - Zámek Pardubice - Ramparts View South - Renaissance architecture](https://commons.wikimedia.org/wiki/File:Pardubice_-_Z%C3%A1mek_Pardubice_-_Ramparts_View_South_-_Renaissance_architecture.jpg) | Txllxt TxllxT | CC BY-SA 4.0 |
 | [Böhmens Burgen, Vesten und Bergschlösser (Band VI., 1848) - Pardubice (půdorys)](https://commons.wikimedia.org/wiki/File:B%C3%B6hmens_Burgen,_Vesten_und_Bergschl%C3%B6sser_(Band_VI.,_1848)_-_Pardubice_(p%C5%AFdorys).jpg) | after Franz Alexander Heber | Public domain |
+
+### Pernštýnské náměstí (tier-2 specs)
+
+| Photo | Author | Licence |
+|---|---|---|
+| [Městský dům, Pernštýnské nám. 117, Pardubice](https://commons.wikimedia.org/wiki/File:M%C4%9Bstsk%C3%BD_d%C5%AFm,_Pern%C5%A1t%C3%BDnsk%C3%A9_n%C3%A1m._117,_Pardubice.JPG) | Petr1888 | CC BY-SA 3.0 |
+| [Městský dům, Pernštýnské nám. 48, Pardubice](https://commons.wikimedia.org/wiki/File:M%C4%9Bstsk%C3%BD_d%C5%AFm,_Pern%C5%A1t%C3%BDnsk%C3%A9_n%C3%A1m._48,_Pardubice.JPG) | Petr1888 | CC BY-SA 3.0 |
+| [Městský dům, Pernštýnské nám. 5, Pardubice](https://commons.wikimedia.org/wiki/File:M%C4%9Bstsk%C3%BD_d%C5%AFm,_Pern%C5%A1t%C3%BDnsk%C3%A9_n%C3%A1m._5,_Pardubice.JPG) | Petr1888 | CC BY-SA 3.0 |
+| [Městský dům, Pernštýnské nám. 61 a 62, Pardubice](https://commons.wikimedia.org/wiki/File:M%C4%9Bstsk%C3%BD_d%C5%AFm,_Pern%C5%A1t%C3%BDnsk%C3%A9_n%C3%A1m._61_a_62,_Pardubice.JPG) | Petr1888 | CC BY-SA 3.0 |
+| [Městský dům, Pernštýnské nám. 63 a 64, Pardubice](https://commons.wikimedia.org/wiki/File:M%C4%9Bstsk%C3%BD_d%C5%AFm,_Pern%C5%A1t%C3%BDnsk%C3%A9_n%C3%A1m._63_a_64,_Pardubice.JPG) | Petr1888 | CC BY-SA 3.0 |
+| [Městský dům, Pernštýnské nám. 65 a 66, Pardubice](https://commons.wikimedia.org/wiki/File:M%C4%9Bstsk%C3%BD_d%C5%AFm,_Pern%C5%A1t%C3%BDnsk%C3%A9_n%C3%A1m._65_a_66,_Pardubice.JPG) | Petr1888 | CC BY-SA 3.0 |
+| [Městský dům, Pernštýnské nám. 67 a 68, Pardubice](https://commons.wikimedia.org/wiki/File:M%C4%9Bstsk%C3%BD_d%C5%AFm,_Pern%C5%A1t%C3%BDnsk%C3%A9_n%C3%A1m._67_a_68,_Pardubice.JPG) | Petr1888 | CC BY-SA 3.0 |
+| [Oesterreicherův dům, Pernštýnské nám. 77 a domy 78, 79, 80, Pardubice](https://commons.wikimedia.org/wiki/File:Oesterreicher%C5%AFv_d%C5%AFm,_Pern%C5%A1t%C3%BDnsk%C3%A9_n%C3%A1m._77_a_domy_78,_79,_80,_Pardubice.JPG) | Petr1888 | CC BY-SA 3.0 |
+| [Pardubice, Pernštýnské náměstí, východní strana](https://commons.wikimedia.org/wiki/File:Pardubice,_Pern%C5%A1t%C3%BDnsk%C3%A9_n%C3%A1m%C4%9Bst%C3%AD,_v%C3%BDchodn%C3%AD_strana.jpg) | Stanislav Dusík | CC BY-SA 4.0 |
+| [Pardubice, Pernštýnské náměstí, západní strana](https://commons.wikimedia.org/wiki/File:Pardubice,_Pern%C5%A1t%C3%BDnsk%C3%A9_n%C3%A1m%C4%9Bst%C3%AD,_z%C3%A1padn%C3%AD_strana.jpg) | Stanislav Dusík | CC BY-SA 4.0 |
+| [Pardubice Pernstynske namesti jv strana](https://commons.wikimedia.org/wiki/File:Pardubice_Pernstynske_namesti_jv_strana.jpg) | Ludek | CC BY-SA 3.0 |
+| [Pernstynske nam c.p. 47-51](https://commons.wikimedia.org/wiki/File:Pernstynske_nam_c.p._47-51.JPG) | Michal Louč | CC BY-SA 3.0 |
+| [Pernstynske nam c.p. 50, 51, 54, 55](https://commons.wikimedia.org/wiki/File:Pernstynske_nam_c.p._50,_51,_54,_55.JPG) | Michal Louč | CC BY-SA 3.0 |
+| [Pardubice - Pernštýnské náměstí - Town Hall 1894 by Jan Vejrych - Neorenaissance 01](https://commons.wikimedia.org/wiki/File:Pardubice_-_Pern%C5%A1t%C3%BDnsk%C3%A9_n%C3%A1m%C4%9Bst%C3%AD_-_Town_Hall_1894_by_Jan_Vejrych_-_Neorenaissance_01.jpg) | Txllxt TxllxT | CC BY-SA 4.0 |

@@ -25,49 +25,49 @@ credited in `CREDITS.md`. Coordinates are metres from Zelená brána (x east, z 
 | way/1355513256 |  |  | 2 | commercial | 9, 81 | pavilion by the theatre |
 | way/45849107 | 12 |  | 4 | commercial | 34, 50 | Ředitelství pošt a telegrafů (čp. 12) |
 
-## Pernštýnské náměstí (`pernstynske`): 0 of 39 specified
+## Pernštýnské náměstí (`pernstynske`): 39 of 39 specified
 
 | OSM id | čp. | name | OSM levels | building | x, z | spec |
 |---|---|---|---|---|---|---|
-| relation/7632614 | 80 |  | 3 | civic | 1, -48 |  |
-| way/45817966 |  |  |  | civic | 8, -64 |  |
-| way/45817965 |  |  |  | civic | 10, -59 |  |
-| way/45818107 | 77 |  | 3 | civic | 12, -15 |  |
-| way/45818618 | 79 | Dům U Zlatého beránka | 4 | civic | 14, -34 |  |
-| way/45818617 | 78 |  | 3 | civic | 14, -27 |  |
-| way/45818742 | 116 | Wernerův dům | 4 | civic | 19, -82 |  |
-| relation/5742367 | 117 |  | 3 | residential | 33, -88 |  |
-| way/45819517 | 71 |  | 3 | residential | 33, 2 |  |
-| way/45819518 | 70 |  | 3 | residential | 39, -1 |  |
-| way/45819521 | 69 |  | 3 | residential | 44, -7 |  |
-| way/45819522 | 68 |  | 3 | residential | 48, -9 |  |
-| way/45819523 | 67 |  | 4 | residential | 55, -8 |  |
-| relation/21826509 | 1 | Magistrát města Pardubic | 4 | civic | 62, -91 |  |
-| way/45819524 | 66 |  | 3 | house | 63, -9 |  |
-| way/45819520 | 65 |  | 4 | residential | 68, -16 |  |
-| way/45819519 | 64 |  | 2 | residential | 74, -19 |  |
-| way/45818874 | 3 |  | 1 | commercial | 86, -100 |  |
-| way/45819512 | 63 |  | 3 | residential | 86, -9 |  |
-| way/45819511 | 62 |  | 3 | residential | 88, -27 |  |
-| way/45818877 | 4 |  | 1 | commercial | 94, -106 |  |
-| way/45819526 | 61 |  | 3 | residential | 99, -21 |  |
-| way/45818876 | 5 |  | 3 | residential | 103, -113 |  |
-| way/45819527 | 60 | U Bílého koníčka | 4 | civic | 108, -35 |  |
-| way/45819530 | 59 |  | 4 | residential | 115, -40 |  |
-| way/45818875 | 6 |  | 3 | civic | 118, -115 |  |
-| way/45819531 | 58 |  | 3 | residential | 122, -37 |  |
-| way/45819528 | 57 |  | 3 | residential | 126, -42 |  |
-| way/45819529 | 56 |  | 3 | residential | 132, -47 |  |
-| way/45849112 | 55 |  | 1 | residential | 136, -51 |  |
-| way/45934679 | 43 |  | 4 | residential | 137, -130 |  |
-| way/45934682 | 46 |  | 1 | residential | 143, -122 |  |
-| way/45931261 | 47 |  |  | yes | 147, -115 |  |
-| way/45849108 | 54 | Evropský spolkový dům | 5 | civic | 149, -50 |  |
-| way/45931259 | 48 |  | 3 | residential | 159, -115 |  |
-| relation/5613722 | 49 |  | 3 | residential | 160, -103 |  |
-| way/45931255 | 51 | Stará lékárna | 3 | commercial | 168, -80 |  |
-| way/45931256 | 50 | Dům U Jonáše | 3 | civic | 174, -100 |  |
-| way/45931247 | 52 |  | 1 | school | 182, -70 |  |
+| relation/7632614 | 80 |  | 3 | civic | 1, -48 | čp. 80 |
+| way/45817966 |  |  |  | civic | 8, -64 | courtyard wing behind čp. 80 |
+| way/45817965 |  |  |  | civic | 10, -59 | courtyard wing behind čp. 79 |
+| way/45818107 | 77 |  | 3 | civic | 12, -15 | Oesterreicherův dům (čp. 77) |
+| way/45818618 | 79 | Dům U Zlatého beránka | 4 | civic | 14, -34 | Dům U Zlatého beránka (čp. 79) |
+| way/45818617 | 78 |  | 3 | civic | 14, -27 | čp. 78 |
+| way/45818742 | 116 | Wernerův dům | 4 | civic | 19, -82 | Wernerův dům (čp. 116) |
+| relation/5742367 | 117 |  | 3 | residential | 33, -88 | čp. 117 (U Černého orla) |
+| way/45819517 | 71 |  | 3 | residential | 33, 2 | čp. 71 |
+| way/45819518 | 70 |  | 3 | residential | 39, -1 | čp. 70 |
+| way/45819521 | 69 |  | 3 | residential | 44, -7 | čp. 69 |
+| way/45819522 | 68 |  | 3 | residential | 48, -9 | čp. 68 |
+| way/45819523 | 67 |  | 4 | residential | 55, -8 | čp. 67 |
+| relation/21826509 | 1 | Magistrát města Pardubic | 4 | civic | 62, -91 | Magistrát (town hall, čp. 1) |
+| way/45819524 | 66 |  | 3 | house | 63, -9 | čp. 66 |
+| way/45819520 | 65 |  | 4 | residential | 68, -16 | čp. 65 |
+| way/45819519 | 64 |  | 2 | residential | 74, -19 | čp. 64 |
+| way/45818874 | 3 |  | 1 | commercial | 86, -100 | čp. 3 |
+| way/45819512 | 63 |  | 3 | residential | 86, -9 | čp. 63 |
+| way/45819511 | 62 |  | 3 | residential | 88, -27 | čp. 62 |
+| way/45818877 | 4 |  | 1 | commercial | 94, -106 | čp. 4 |
+| way/45819526 | 61 |  | 3 | residential | 99, -21 | čp. 61 |
+| way/45818876 | 5 |  | 3 | residential | 103, -113 | čp. 5 |
+| way/45819527 | 60 | U Bílého koníčka | 4 | civic | 108, -35 | U Bílého koníčka (čp. 60) |
+| way/45819530 | 59 |  | 4 | residential | 115, -40 | čp. 59 |
+| way/45818875 | 6 |  | 3 | civic | 118, -115 | čp. 6 |
+| way/45819531 | 58 |  | 3 | residential | 122, -37 | čp. 58 |
+| way/45819528 | 57 |  | 3 | residential | 126, -42 | čp. 57 (Jonáš) |
+| way/45819529 | 56 |  | 3 | residential | 132, -47 | čp. 56 |
+| way/45849112 | 55 |  | 1 | residential | 136, -51 | čp. 55 |
+| way/45934679 | 43 |  | 4 | residential | 137, -130 | čp. 43 |
+| way/45934682 | 46 |  | 1 | residential | 143, -122 | čp. 46 |
+| way/45931261 | 47 |  |  | yes | 147, -115 | čp. 47 |
+| way/45849108 | 54 | Evropský spolkový dům | 5 | civic | 149, -50 | Evropský spolkový dům (čp. 54) |
+| way/45931259 | 48 |  | 3 | residential | 159, -115 | čp. 48 |
+| relation/5613722 | 49 |  | 3 | residential | 160, -103 | čp. 49 |
+| way/45931255 | 51 | Stará lékárna | 3 | commercial | 168, -80 | Stará lékárna (čp. 51) |
+| way/45931256 | 50 | Dům U Jonáše | 3 | civic | 174, -100 | Dům U Jonáše (čp. 50) |
+| way/45931247 | 52 |  | 1 | school | 182, -70 | čp. 52 |
 
 ## třída Míru (`miru`): 0 of 43 specified
 

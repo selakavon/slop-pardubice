@@ -30,3 +30,12 @@ test('náměstí Republiky is specified', () => {
 test('specs reach the generator', () => {
   assert.match(fs.readFileSync(new URL('../js/pardubice-buildings.js', import.meta.url), 'utf8'), /BUILDING_SPECS\[b\.attrs\.id\]/);
 });
+
+test('Pernštýnské náměstí is specified', () => {
+  const list = candidates.pernstynske;
+  assert.deepEqual(list.filter((c) => !c.spec).map((c) => c.id), []);
+  assert.ok(list.length >= 35);
+  // No flat-roofed boxes on the square (spec §4): street gables on most houses
+  const gables = list.filter((c) => c.spec.gable).length;
+  assert.ok(gables >= list.length / 2, `${gables} of ${list.length} houses have a gable`);
+});
