@@ -57,6 +57,8 @@ function minAreaRect(ring) {
     : { cx: best.cx, cz: best.cz, ux: -best.uz, uz: best.ux, halfLong: best.ht, halfShort: best.hs, area: best.area };
 }
 
+export { minAreaRect };
+
 export function nearRectangle(ring) {
   const r = clean(ring);
   if (r.length < 3 || r.length > 8) return null;
