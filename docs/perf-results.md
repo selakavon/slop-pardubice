@@ -12,6 +12,16 @@ frame rate at 30. A second counts as slow below 29 fps, which allows for frame-p
 
 | Date | Commit | Device | Browser | Profile (overrides) | Backend | Avg fps | Worst minute | p99 ms | Stutters >100 ms | Thermal | Load s | MB | Verdict |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 2026-11-05 | ea03ac4 | laptop, Radeon 890M, Ubuntu, 2506×1293 at 60 Hz | Chrome 156 | desktop | WebGL | 53.0 | 49.8 | 33.4 | 0 | 0.88 | 3.9 | 0.02 (cached) | PASS (2-minute run) |
+
+Notes on the runs above:
+
+- **Laptop, 2026-11-05:** a 2-minute run (`?perf=2`), not the full 10. No second fell below 29 fps (the lowest was 34);
+  4 frames took over 50 ms and none over 100 ms. Minute 2 averaged 49.8 against 56.3 for minute 1, a ratio of 0.88
+  that is just above the 0.85 limit. Two minutes of play can't tell heat from a busier part of the city. Chrome on
+  Linux has no WebGPU by default, so this is the WebGL 2 path, with full desktop settings at native resolution.
+- **Phone:** no run yet. The user can't test on a phone for now and chose to skip it, so the phone profile keeps its
+  untested defaults (`js/graphics-profile.js`) and hasn't been tuned.
 
 ## Browser check (`tools/browser-check.mjs`, this machine, software rendering)
 
