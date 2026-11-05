@@ -93,3 +93,44 @@ test('the passage arch frame is a ring, so the passage stays open', () => {
     assert.ok(!covers, `a ${p.surface} panel covers the passage`);
   }
 });
+
+test('the spawn view landmarks are all modelled', async () => {
+  const { BUILDING_SPECS } = await import('../js/pardubice-building-specs.js');
+  const { models, replaced } = L.landmarkPlan(P, buildings);
+  const names = models.map((m) => m.name);
+  for (const n of ['Zelená brána', 'Svatý Bartoloměj', 'Zvonice', 'Grand', 'Východočeské divadlo']) assert.ok(names.includes(n), n);
+  // The church and its bell tower take over their OSM buildings; the Grand and the theatre keep theirs, drawn by the
+  // generator from a tier-2 spec, with their hand-made parts added
+  const id = (name) => buildings.find((b) => b.attrs.name === name).attrs.id;
+  assert.ok(replaced.has(id('Svatý Bartoloměj')));
+  assert.ok(replaced.has('way/45818621'), 'the bell tower');
+  for (const n of ['Grand', 'Východočeské divadlo']) {
+    assert.ok(!replaced.has(id(n)), `${n} keeps its OSM building`);
+    assert.ok(BUILDING_SPECS[id(n)], `${n} has a spec`);
+  }
+});
+
+test('spawn and teleports stay outside every landmark collider', async () => {
+  const { defaultSpawn, TELEPORT_LOCATIONS } = await import('../js/city-config.js');
+  const { models } = L.landmarkPlan(P, buildings);
+  const colliders = models.flatMap((m) => m.colliders);
+  const points = [defaultSpawn, ...Object.values(TELEPORT_LOCATIONS).flat().filter((p) => Number.isFinite(p?.x))];
+  assert.ok(points.length > 1);
+  for (const p of points) {
+    for (const c of colliders) assert.ok(!hits(c, p.x, p.z, 0, 1.9, 0.5), `(${p.x}, ${p.z}) is inside a landmark`);
+  }
+});
+
+test('landmarks stay within the draw-call budget', () => {
+  const { models } = L.landmarkPlan(P, buildings);
+  // One merged mesh per landmark, plus one for the signs
+  assert.ok(models.length + 1 <= 16);
+});
+
+test('the church stands on its footprint with a ridge spire', () => {
+  const church = L.landmarkPlan(P, buildings).models.find((m) => m.name === 'Svatý Bartoloměj');
+  const b = L.partsBounds(church.parts, church.frame, church.axis);
+  const lm = P.landmarks['Svatý Bartoloměj'];
+  assert.ok(lm.x > b.minX && lm.x < b.maxX && lm.z > b.minZ && lm.z < b.maxZ);
+  assert.ok(b.maxY > 40 && b.maxY < 52, `spire top ${b.maxY}`);
+});

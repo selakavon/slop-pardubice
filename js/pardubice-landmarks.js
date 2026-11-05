@@ -12,7 +12,9 @@ import { landmarkPlan } from './pardubice-landmark-models.js';
 const LANDMARK_SURFACES = {
   render: [0xece7da, 0.85, 0], stone: [0x857463, 0.95, 0], sandstone: [0xc8b38a, 0.9, 0], dark: [0x1a1816, 0.9, 0],
   wood: [0x4a3122, 0.8, 0], frieze: [0xeeeae0, 0.85, 0], copper: [0x5b8a78, 0.5, 0.35], copperDark: [0x3f5f55, 0.55, 0.3],
-  gold: [0xd6ac45, 0.3, 1], clock: [0xf2f0ea, 0.5, 0], tile: [0x9a4a32, 0.8, 0], slate: [0x45474a, 0.6, 0.1]
+  gold: [0xd6ac45, 0.3, 1], clock: [0xf2f0ea, 0.5, 0], tile: [0x9a4a32, 0.8, 0], slate: [0x45474a, 0.6, 0.1],
+  yellow: [0xdcc483, 0.85, 0], brick: [0x9b4a35, 0.9, 0], glass: [0x26333d, 0.15, 0.2], red: [0xa8322a, 0.6, 0],
+  bronze: [0x3d3a30, 0.5, 0.6], greyStone: [0x6f6b64, 0.95, 0]
 };
 const CODES = Object.fromEntries(Object.keys(LANDMARK_SURFACES).map((k, i) => [k, i]));
 
@@ -32,7 +34,9 @@ function landmarkMaterial() {
     // Copper: uneven green patina
     const patina = base.mul(noise2D(vec2(p.x.add(p.z), p.y).mul(0.9)).mul(0.3).add(0.85));
     const render = base.mul(noise2D(vec2(p.x.add(p.z), p.y).mul(1.5)).mul(0.06).add(0.97));
-    return mix(mix(mix(base, render, is('render')), stone, is('stone')), patina, is('copper').max(is('copperDark')));
+    const greyStone = base.mul(stones.mul(0.4).add(0.78));
+    return mix(mix(mix(mix(base, render, is('render')), stone, is('stone')), greyStone, is('greyStone')), patina,
+      is('copper').max(is('copperDark')));
   })();
   const values = Object.values(LANDMARK_SURFACES);
   let rough = float(values[0][1]), metal = float(values[0][2]);
@@ -70,6 +74,12 @@ function partGeometry(p) {
     g = new THREE.CircleGeometry(p.r, 20);
     g.rotateY({ '+s': Math.PI / 2, '-s': -Math.PI / 2, '+t': 0, '-t': Math.PI }[p.face]);
     g.translate(p.cs, p.y, p.ct);
+  } else if (p.kind === 'beam') {
+    // A box along the wall a→b (world coordinates), sticking out `out` metres along (ox, oz)
+    const len = Math.hypot(p.b.x - p.a.x, p.b.z - p.a.z);
+    g = new THREE.BoxGeometry(len, p.y[1] - p.y[0], p.out);
+    g.rotateY(-Math.atan2(p.b.z - p.a.z, p.b.x - p.a.x));
+    g.translate((p.a.x + p.b.x) / 2 + p.ox * (p.out / 2 - 0.05), (p.y[0] + p.y[1]) / 2, (p.a.z + p.b.z) / 2 + p.oz * (p.out / 2 - 0.05));
   } else if (p.kind === 'panel') {
     const [x, z, sign] = PANEL_BASES[p.face];
     const shape = new THREE.Shape(p.outline.map(([u, y]) => new THREE.Vector2(u * sign, y)));
@@ -96,13 +106,46 @@ function expandParts(parts) {
     : [p]));
 }
 
+// Signs (the GRAND banners): white vertical lettering on red, one texture shared by every sign
+let signMaterial;
+function signTexture(text) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 128; canvas.height = 512;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#b4282a'; ctx.fillRect(0, 0, 128, 512);
+  ctx.strokeStyle = '#f4f1ea'; ctx.lineWidth = 6; ctx.strokeRect(10, 10, 108, 492);
+  ctx.translate(64, 256); ctx.rotate(-Math.PI / 2);
+  ctx.fillStyle = '#f4f1ea'; ctx.font = 'bold 96px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(text, 0, 4, 460);
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
+}
+function signMesh(signs) {
+  if (!signs.length) return null;
+  signMaterial ??= new THREE.MeshStandardNodeMaterial({ map: signTexture(signs[0].text), roughness: 0.6, side: THREE.DoubleSide });
+  const geometries = signs.map((sg) => {
+    const g = new THREE.PlaneGeometry(sg.w, sg.y[1] - sg.y[0]);
+    g.rotateY(Math.atan2(sg.nx, sg.nz));
+    g.translate(sg.cx, (sg.y[0] + sg.y[1]) / 2, sg.cz);
+    return g;
+  });
+  const mesh = new THREE.Mesh(mergeGeometries(geometries, false), signMaterial);
+  for (const g of geometries) g.dispose();
+  mesh.name = 'LandmarkSigns';
+  mesh.castShadow = true;
+  return mesh;
+}
+
 function buildPardubiceLandmarks(scene) {
   const group = new THREE.Group();
   group.name = 'PardubiceLandmarks';
   const { models, replaced } = landmarkPlan(PARDUBICE, REAL_BUILDINGS);
   const colliders = [];
+  const signs = [];
   for (const m of models) {
-    const geometries = expandParts(m.parts).map(partGeometry);
+    signs.push(...m.parts.filter((p) => p.kind === 'sign'));
+    const geometries = expandParts(m.parts.filter((p) => p.kind !== 'sign')).map(partGeometry);
     const geometry = mergeGeometries(geometries, false);
     for (const g of geometries) g.dispose();
     geometry.applyMatrix4(frameMatrix(m.frame, m.axis));
@@ -113,6 +156,8 @@ function buildPardubiceLandmarks(scene) {
     group.add(mesh);
     colliders.push(...m.colliders);
   }
+  const signsMesh = signMesh(signs);
+  if (signsMesh) group.add(signsMesh);
   scene.add(group);
   return { group, colliders, replaced };
 }
