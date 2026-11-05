@@ -69,50 +69,50 @@ credited in `CREDITS.md`. Coordinates are metres from Zelená brána (x east, z 
 | way/45931256 | 50 | Dům U Jonáše | 3 | civic | 174, -100 | Dům U Jonáše (čp. 50) |
 | way/45931247 | 52 |  | 1 | school | 182, -70 | čp. 52 |
 
-## třída Míru (`miru`): 0 of 43 specified
+## třída Míru (`miru`): 43 of 43 specified
 
 | OSM id | čp. | name | OSM levels | building | x, z | spec |
 |---|---|---|---|---|---|---|
-| way/672396563 | 2800 | Magnum | 8 | civic | -538, 183 |  |
-| way/45870459 | 220 |  | 3 | residential | -535, 239 |  |
-| way/45870457 | 172 |  | 4 | residential | -525, 232 |  |
-| way/45870456 | 172 | Vlachův dům | 3 | residential | -503, 220 |  |
-| way/1452264156 |  | Veselka |  | no | -498, 174 |  |
-| way/46043457 | 2647 |  | 7 | residential | -494, 145 |  |
-| way/46043469 | 79 |  | 5 | residential | -461, 137 |  |
-| way/46043465 | 72 | Česká spořitelna | 5 | civic | -456, 214 |  |
-| way/46043456 | 92 | Pyramida office center | 8 | office | -425, 101 |  |
-| way/61834583 | 71 |  | 6 | residential | -424, 230 |  |
-| way/46043468 | 70 |  | 6 | residential | -417, 195 |  |
-| way/45877785 |  |  | 1 | civic | -407, 154 |  |
-| way/46043461 | 69 |  | 2 | residential | -403, 193 |  |
-| way/46043474 | 94 |  | 1 | civic | -396, 116 |  |
-| way/61834590 | 68 |  | 4 | civic | -380, 188 |  |
-| way/46043473 | 95 |  | 4 | civic | -374, 123 |  |
-| way/61834602 | 67 |  | 3 | residential | -360, 182 |  |
-| way/46043472 | 96 |  | 6 | residential | -344, 113 |  |
-| way/46043471 | 97 |  | 5 | residential | -331, 108 |  |
-| way/46043463 | 422 |  | 3 | residential | -330, 163 |  |
-| way/46043464 | 150 |  | 2 | residential | -317, 159 |  |
-| way/46043459 | 98 |  | 4 | residential | -316, 107 |  |
-| way/46043458 | 66 |  | 2 | civic | -305, 148 |  |
-| way/61834587 | 65 |  | 2 | residential | -283, 152 |  |
-| way/45857403 | 105 |  | 5 | civic | -270, 76 |  |
-| way/61834601 | 64 |  | 3 | residential | -266, 154 |  |
-| way/61834588 | 63 |  | 5 | civic | -249, 140 |  |
-| way/45857402 | 2669 |  | 7 | residential | -244, 75 |  |
-| way/46041715 | 62 |  | 3 | residential | -230, 122 |  |
-| way/45857401 | 2671 |  | 6 | residential | -223, 86 |  |
-| way/45857411 | 109 |  | 5 | yes | -215, 56 |  |
-| way/45857407 | 110 |  | 5 | civic | -198, 65 |  |
-| way/46041280 | 60 |  | 6 | residential | -196, 138 |  |
-| way/45857406 | 763 |  | 6 | residential | -187, 59 |  |
-| way/46041278 | 450 |  | 4 | residential | -185, 106 |  |
-| way/45857405 | 111 |  | 3 | residential | -179, 35 |  |
-| way/46041277 | 90 |  | 4 | civic | -167, 102 |  |
-| way/45857404 | 112 |  | 3 | civic | -161, 44 |  |
-| way/46041275 | 86 |  | 4 | residential | -147, 95 |  |
-| way/45856022 | 113 |  | 3 | civic | -144, 40 |  |
-| way/46041276 | 302 |  | 2 | residential | -131, 85 |  |
-| way/1420723363 |  |  |  | retail | -127, 29 |  |
-| way/46041274 | 58 |  | 5 | residential | -101, 77 |  |
+| way/672396563 | 2800 | Magnum | 8 | civic | -538, 183 | Magnum (čp. 2800) |
+| way/45870459 | 220 |  | 3 | residential | -535, 239 | čp. 220 |
+| way/45870457 | 172 |  | 4 | residential | -525, 232 | čp. 172 (rear wing) |
+| way/45870456 | 172 | Vlachův dům | 3 | residential | -503, 220 | Vlachův dům (čp. 172) |
+| way/1452264156 |  | Veselka |  | no | -498, 174 | Hotel Veselka |
+| way/46043457 | 2647 |  | 7 | residential | -494, 145 | čp. 2647 |
+| way/46043469 | 79 |  | 5 | residential | -461, 137 | Dům Rolnického družstva (čp. 79) |
+| way/46043465 | 72 | Česká spořitelna | 5 | civic | -456, 214 | Česká spořitelna (čp. 72) |
+| way/46043456 | 92 | Pyramida office center | 8 | office | -425, 101 | Pyramida (čp. 92) |
+| way/61834583 | 71 |  | 6 | residential | -424, 230 | čp. 71 |
+| way/46043468 | 70 |  | 6 | residential | -417, 195 | Třída Míru 70 (čp. 70) |
+| way/45877785 |  |  | 1 | civic | -407, 154 | pavilion on třída Míru |
+| way/46043461 | 69 |  | 2 | residential | -403, 193 | čp. 69 |
+| way/46043474 | 94 |  | 1 | civic | -396, 116 | čp. 94 |
+| way/61834590 | 68 |  | 4 | civic | -380, 188 | čp. 68 |
+| way/46043473 | 95 |  | 4 | civic | -374, 123 | čp. 95 |
+| way/61834602 | 67 |  | 3 | residential | -360, 182 | čp. 67 |
+| way/46043472 | 96 |  | 6 | residential | -344, 113 | čp. 96 |
+| way/46043471 | 97 |  | 5 | residential | -331, 108 | Kolařík (čp. 97) |
+| way/46043463 | 422 |  | 3 | residential | -330, 163 | čp. 422 |
+| way/46043464 | 150 |  | 2 | residential | -317, 159 | čp. 150 |
+| way/46043459 | 98 |  | 4 | residential | -316, 107 | čp. 98 |
+| way/46043458 | 66 |  | 2 | civic | -305, 148 | čp. 66 |
+| way/61834587 | 65 |  | 2 | residential | -283, 152 | čp. 65 |
+| way/45857403 | 105 |  | 5 | civic | -270, 76 | čp. 105 |
+| way/61834601 | 64 |  | 3 | residential | -266, 154 | čp. 64 |
+| way/61834588 | 63 |  | 5 | civic | -249, 140 | čp. 63 |
+| way/45857402 | 2669 |  | 7 | residential | -244, 75 | čp. 2669 |
+| way/46041715 | 62 |  | 3 | residential | -230, 122 | čp. 62 |
+| way/45857401 | 2671 |  | 6 | residential | -223, 86 | čp. 2671 |
+| way/45857411 | 109 |  | 5 | yes | -215, 56 | Josef Franc (čp. 109) |
+| way/45857407 | 110 |  | 5 | civic | -198, 65 | čp. 110 |
+| way/46041280 | 60 |  | 6 | residential | -196, 138 | čp. 60 |
+| way/45857406 | 763 |  | 6 | residential | -187, 59 | čp. 763 (Café Bajer) |
+| way/46041278 | 450 |  | 4 | residential | -185, 106 | čp. 450 |
+| way/45857405 | 111 |  | 3 | residential | -179, 35 | čp. 111 |
+| way/46041277 | 90 |  | 4 | civic | -167, 102 | čp. 90 |
+| way/45857404 | 112 |  | 3 | civic | -161, 44 | čp. 112 |
+| way/46041275 | 86 |  | 4 | residential | -147, 95 | čp. 86 |
+| way/45856022 | 113 |  | 3 | civic | -144, 40 | Krausův dům (čp. 113) |
+| way/46041276 | 302 |  | 2 | residential | -131, 85 | čp. 302 |
+| way/1420723363 |  |  |  | retail | -127, 29 | shop pavilion by the Grand |
+| way/46041274 | 58 |  | 5 | residential | -101, 77 | Palác na Kopečku (čp. 58) |

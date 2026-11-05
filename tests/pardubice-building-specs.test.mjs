@@ -39,3 +39,9 @@ test('Pernštýnské náměstí is specified', () => {
   const gables = list.filter((c) => c.spec.gable).length;
   assert.ok(gables >= list.length / 2, `${gables} of ${list.length} houses have a gable`);
 });
+
+test('třída Míru is specified', () => {
+  const list = candidates.miru;
+  assert.deepEqual(list.filter((c) => c.x > -700 && !c.spec).map((c) => c.id), []);
+  assert.ok(Object.values(SPECS).filter((s) => s.area === 'miru').length >= 40);
+});

@@ -83,3 +83,23 @@ its own licence. Thanks to the photographers.
 | [Pernstynske nam c.p. 47-51](https://commons.wikimedia.org/wiki/File:Pernstynske_nam_c.p._47-51.JPG) | Michal Louč | CC BY-SA 3.0 |
 | [Pernstynske nam c.p. 50, 51, 54, 55](https://commons.wikimedia.org/wiki/File:Pernstynske_nam_c.p._50,_51,_54,_55.JPG) | Michal Louč | CC BY-SA 3.0 |
 | [Pardubice - Pernštýnské náměstí - Town Hall 1894 by Jan Vejrych - Neorenaissance 01](https://commons.wikimedia.org/wiki/File:Pardubice_-_Pern%C5%A1t%C3%BDnsk%C3%A9_n%C3%A1m%C4%9Bst%C3%AD_-_Town_Hall_1894_by_Jan_Vejrych_-_Neorenaissance_01.jpg) | Txllxt TxllxT | CC BY-SA 4.0 |
+
+### Třída Míru (tier-2 specs)
+
+| Photo | Author | Licence |
+|---|---|---|
+| [Krausův dům z třídy Míru](https://commons.wikimedia.org/wiki/File:Kraus%C5%AFv_d%C5%AFm_z_t%C5%99%C3%ADdy_M%C3%ADru.jpg) | JadelAqua | CC BY-SA 4.0 |
+| [Obchodní a obytný dům firmy Kolařík, tř. Míru 97, Pardubice](https://commons.wikimedia.org/wiki/File:Obchodn%C3%AD_a_obytn%C3%BD_d%C5%AFm_firmy_Kola%C5%99%C3%ADk,_t%C5%99._M%C3%ADru_97,_Pardubice.JPG) | Petr1888 | CC BY-SA 3.0 |
+| [Obchodní dům, tř. Míru 109, Pardubice](https://commons.wikimedia.org/wiki/File:Obchodn%C3%AD_d%C5%AFm,_t%C5%99._M%C3%ADru_109,_Pardubice.JPG) | Petr1888 | CC BY-SA 3.0 |
+| [Palac na Kopecku, Tr. Miru 58, Pardubice](https://commons.wikimedia.org/wiki/File:Palac_na_Kopecku,_Tr._Miru_58,_Pardubice.JPG) | Michal Louč | CC BY-SA 3.0 |
+| [Pardubice, Bratranců Veverkových, třída Míru 72, Česká spořitelna](https://commons.wikimedia.org/wiki/File:Pardubice,_Bratranc%C5%AF_Veverkov%C3%BDch,_t%C5%99%C3%ADda_M%C3%ADru_72,_%C4%8Cesk%C3%A1_spo%C5%99itelna.jpg) | ŠJů | CC BY 4.0 |
+| [Pardubice, třída Míru, Polyfunkční dům Magnum a ČP](https://commons.wikimedia.org/wiki/File:Pardubice,_t%C5%99%C3%ADda_M%C3%ADru,_Polyfunk%C4%8Dn%C3%AD_d%C5%AFm_Magnum_a_%C4%8CP.jpg) | Palickap | CC BY-SA 4.0 |
+| [Pardubice, třída Míru, od Masarykova náměstí](https://commons.wikimedia.org/wiki/File:Pardubice,_t%C5%99%C3%ADda_M%C3%ADru,_od_Masarykova_n%C3%A1m%C4%9Bst%C3%AD.jpg) | ŠJů | CC BY 4.0 |
+| [Pardubice, třída Míru, od náměstí Republiky, trolejbus a cyklisté](https://commons.wikimedia.org/wiki/File:Pardubice,_t%C5%99%C3%ADda_M%C3%ADru,_od_n%C3%A1m%C4%9Bst%C3%AD_Republiky,_trolejbus_a_cyklist%C3%A9.jpg) | ŠJů | CC BY 4.0 |
+| [Pernerova 79, Pardubice](https://commons.wikimedia.org/wiki/File:Pernerova_79,_Pardubice.JPG) | Michal Louč | CC BY-SA 3.0 |
+| [Tr. Miru 110, Pardubice](https://commons.wikimedia.org/wiki/File:Tr._Miru_110,_Pardubice.JPG) | Michal Louč | CC BY-SA 3.0 |
+| [Trida Miru 95 Pardubice](https://commons.wikimedia.org/wiki/File:Trida_Miru_95_Pardubice.jpg) | Michal Maňas | CC BY 4.0 |
+| [Třída míru - horní část](https://commons.wikimedia.org/wiki/File:T%C5%99%C3%ADda_m%C3%ADru_-_horn%C3%AD_%C4%8D%C3%A1st.jpg) | Pohled 111 | CC BY-SA 4.0 |
+| [Třída míru - pohled zpět na horní část ulice](https://commons.wikimedia.org/wiki/File:T%C5%99%C3%ADda_m%C3%ADru_-_pohled_zp%C4%9Bt_na_horn%C3%AD_%C4%8D%C3%A1st_ulice.jpg) | Pohled 111 | CC BY-SA 4.0 |
+| [Činžovní dům, tř. Míru 71, Pardubice](https://commons.wikimedia.org/wiki/File:%C4%8Cin%C5%BEovn%C3%AD_d%C5%AFm,_t%C5%99._M%C3%ADru_71,_Pardubice.JPG) | Petr1888 | CC BY-SA 3.0 |
+| [Činžovní dům, tř. Míru 763, Pardubice](https://commons.wikimedia.org/wiki/File:%C4%8Cin%C5%BEovn%C3%AD_d%C5%AFm,_t%C5%99._M%C3%ADru_763,_Pardubice.JPG) | Petr1888 | CC BY-SA 3.0 |
