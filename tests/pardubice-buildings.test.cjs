@@ -57,15 +57,16 @@ test('colliders cover every building that is not replaced', async () => {
   const city = buildPardubiceBuildings(scene, { colliders: [], replaced });
   const kept = buildings.slice(1);
   assert.equal(city.colliders.length, kept.reduce((n, b) => n + b.polygons.length, 0));
-  assert.ok(city.colliders.every((c) => c.minY === 0 && c.polygon && c.maxY >= 2));
+  assert.ok(city.colliders.every((c) => (c.minY === 0 || c.minY > 2.5) && c.polygon && c.maxY >= 2));
   const ctx = styles.createStyleContext(PARDUBICE);
   let i = 0;
   for (const b of kept) {
-    const eave = styles.facadeFor(b, specs.BUILDING_SPECS[b.attrs.id], ctx).eave;
+    const f = styles.facadeFor(b, specs.BUILDING_SPECS[b.attrs.id], ctx), eave = f.eave;
     for (const p of b.polygons) {
       const c = city.colliders[i++];
       assert.equal(c.polygon.outer, p.outer);
-      assert.ok(c.maxY >= Math.max(b.height, eave) - 1e-9, `${b.attrs.id} collider ${c.maxY}`);
+      assert.ok(c.maxY >= (f.style === 'canopy' ? eave : Math.max(b.height, eave)) - 1e-9, `${b.attrs.id} collider ${c.maxY}`);
+      assert.equal(c.minY > 0, f.style === 'canopy');
     }
   }
   assert.equal(city.allBlocks.length, kept.length);
@@ -92,4 +93,9 @@ test('the Pardubice buildings and landmarks get scene culling and shadow stand-i
   assert.match(list, /'PardubiceBuildings'/);
   assert.match(list, /'PardubiceLandmarks'/);
   assert.match(read('js/pardubice-buildings.js'), /group\.name = 'PardubiceBuildings'/);
+});
+
+test('canopies can be walked under', () => {
+  const src = read('js/pardubice-buildings.js');
+  assert.match(src, /minY: r\.facade\.style === 'canopy' \? r\.facade\.eave - CANOPY_THICKNESS : 0/);
 });

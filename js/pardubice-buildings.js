@@ -4,7 +4,7 @@
 import * as THREE from 'three/webgpu';
 import { REAL_BUILDINGS } from './building-geodata.js';
 import { PARDUBICE } from './pardubice-geodata.js';
-import { createStyleContext, facadeFor } from './czech-styles.js';
+import { createStyleContext, facadeFor, CANOPY_THICKNESS } from './czech-styles.js';
 import { buildingMeshData } from './building-mesh-data.js';
 import { BUILDING_SPECS } from './pardubice-building-specs.js';
 import { polygonContains } from './building-collision.js';
@@ -130,7 +130,8 @@ function buildPardubiceBuildings(scene, { colliders: landmarkColliders = [], rep
     const top = tops.get(r) ?? Math.max(r.height, r.facade.eave);
     const footprints = [];
     for (const polygon of r.polygons) {
-      colliders.push({ ...bounds(polygon.outer), minY: 0, maxY: top, polygon });
+      // Canopies only block above head height
+      colliders.push({ ...bounds(polygon.outer), minY: r.facade.style === 'canopy' ? r.facade.eave - CANOPY_THICKNESS : 0, maxY: top, polygon });
       footprints.push({ h: top, pts: polygon.outer, holes: polygon.holes });
     }
     allBlocks.push({ cx: r.cx, cz: r.cz, minX: r.minX, maxX: r.maxX, minZ: r.minZ, maxZ: r.maxZ, footprints });

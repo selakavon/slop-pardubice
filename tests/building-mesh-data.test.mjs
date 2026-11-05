@@ -142,3 +142,14 @@ test('the flat top of a city-block roof takes the roof colour, not the membrane 
     assert.ok(tr > tb + 0.05 && Math.abs(tr / cr - tb / cb) < 0.05 && Math.abs(tg / cg - tr / cr) < 0.05, `cap tint ${[tr, tg, tb]}`);
   }
 });
+
+test('canopies are a slab with nothing underneath', () => {
+  const r = withFacade(rect(-600, 300, 4, 6, { building: 'roof' }));
+  const { cells, tops } = M.buildingMeshData([r], noNeighbours);
+  const { facade, roof } = parts(cells);
+  assert.equal(facade[0].index.length, 0, 'no walls');
+  const ys = roof[0].position.filter((_, i) => i % 3 === 1);
+  assert.ok(Math.min(...ys) > 2.5, `the slab's underside is at ${Math.min(...ys)}`);
+  assert.ok(roof[0].normal.some((v, i) => i % 3 === 1 && v < 0), 'the slab has an underside');
+  assert.ok(tops.get(r) < 4);
+});

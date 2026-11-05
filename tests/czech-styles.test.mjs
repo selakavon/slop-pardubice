@@ -103,3 +103,11 @@ test('the same building always looks the same', () => {
   const b = buildings[1234];
   assert.deepEqual(S.facadeFor(b, undefined, ctx), S.facadeFor(b, undefined, ctx));
 });
+
+test('roof-only buildings are canopies', () => {
+  const f = S.facadeFor(rect(-600, 300, { building: 'roof' }), undefined, ctx);
+  assert.equal(f.style, 'canopy');
+  assert.equal(f.roof.shape, 'flat');
+  assert.ok(f.eave > 2.5 && f.eave < 4, `canopy at ${f.eave}`);
+  assert.equal(f.chimneys, false);
+});

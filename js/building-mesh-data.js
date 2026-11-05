@@ -1,13 +1,14 @@
 // Merged vertex data for the Czech buildings, one set of parts per 1 km cell: facade walls (and gable walls), roofs, and
 // vertex-coloured details (cornices, chimneys). Pure: plain arrays that js/pardubice-buildings.js wraps in meshes.
 import { roofMesh, pickFrontEdge } from './roof-geometry.js';
-import { GROUND_CODES } from './czech-styles.js';
+import { GROUND_CODES, CANOPY_THICKNESS } from './czech-styles.js';
 
 const GROUND_Y = 0.22;
 const KIND = { shop: 0, front: 1, rear: 2, lotLine: 3 };   // tsl-materials.js WALL_KINDS
 const TRIM_WHITE = [0xf6 / 255, 0xf2 / 255, 0xea / 255];
 const BRICK = [0x8a / 255, 0x4b / 255, 0x3a / 255];
 const MEMBRANE = [0.3, 0.29, 0.28];
+const CANOPY_GLASS = [0.42, 0.5, 0.55];   // the glass roofs over the underpass stairs
 const CORNICE = { simple: { h: 0.5, d: 0.35 }, rich: { h: 0.9, d: 0.6 } };
 const GABLE_OUT = 0.05;   // gable panels stand just proud of the wall
 
@@ -80,7 +81,7 @@ export function buildingMeshData(records, { partyHeight, distanceToStreet, trian
     const seed = (parseInt(String(record.attrs?.id || '').replace(/\D/g, '').slice(-6), 10) || 0) % 1000 + 0.1;
     const params = [f.floorHeight, f.windowWidth, f.styleCode, f.ornament * 4 + GROUND_CODES[f.ground]];
     const trim = mix(f.render, TRIM_WHITE, 0.45);
-    let top = Math.max(record.height || 0, eave);
+    let top = f.style === 'canopy' ? eave : Math.max(record.height || 0, eave);
 
     const fa = cell.facade;
     function facadeVertex(x, y, z, nx, nz, width, exposed, along, fromTop, kind) {
@@ -103,6 +104,18 @@ export function buildingMeshData(records, { partyHeight, distanceToStreet, trian
     for (const polygon of record.polygons) {
       const rings = [polygon.outer, ...polygon.holes].filter((r) => r.length >= 3);
       if (!rings.length) continue;
+      if (f.style === 'canopy') {
+        // A slab: top at the eave, underside CANOPY_THICKNESS below, no walls
+        const ro = cell.roof, [outer, ...holes] = rings;
+        for (const [y, ny] of [[eave, 1], [eave - CANOPY_THICKNESS, -1]]) {
+          const base = ro.position.length / 3;
+          for (const p of rings.flat()) {
+            ro.position.push(p.x, y, p.z); ro.normal.push(0, ny, 0); ro.uv.push(p.x, p.z); ro.roofTint.push(...CANOPY_GLASS, 0);
+          }
+          for (const [i, j, k] of triangulate(outer, holes)) tri(ro, base + i, base + j, base + k, 0, ny, 0);
+        }
+        continue;
+      }
       const party = [], adjacent = [];
       rings.forEach((ring, k) => {
         const sigma = Math.sign(signedArea(ring)) || 1;

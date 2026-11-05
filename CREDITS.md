@@ -42,3 +42,16 @@ its own licence. Thanks to the photographers.
 | [Kostel sv. Bartoloměje, nám. Republiky, Pardubice](https://commons.wikimedia.org/wiki/File:Kostel_sv._Bartolom%C4%9Bje,_n%C3%A1m._Republiky,_Pardubice.JPG) | Petr1888 | CC BY-SA 3.0 |
 | [Kostel sv. Bartoloměje Pardubice 01](https://commons.wikimedia.org/wiki/File:Kostel_sv._Bartolom%C4%9Bje_Pardubice_01.jpg) | Pohled 111 | CC BY-SA 4.0 |
 | [Kostel sv. Bartoloměje půdorys přízemí](https://commons.wikimedia.org/wiki/File:Kostel_sv._Bartolom%C4%9Bje_p%C5%AFdorys_p%C5%99%C3%ADzem%C3%AD.jpg) | L.Vynnyk | CC BY-SA 3.0 |
+
+### Náměstí Republiky (tier-2 specs)
+
+| Photo | Author | Licence |
+|---|---|---|
+| [Anglobanka, nam. Republiky 222, Pardubice (01)](https://commons.wikimedia.org/wiki/File:Anglobanka,_nam._Republiky_222,_Pardubice_(01).JPG) | Michal Louč | CC BY-SA 3.0 |
+| [Mestska sporitelna, nam. Republiky 1, Pardubice (01)](https://commons.wikimedia.org/wiki/File:Mestska_sporitelna,_nam._Republiky_1,_Pardubice_(01).JPG) | Michal Louč | CC BY-SA 3.0 |
+| [Republiky square, east part, Pardubice](https://commons.wikimedia.org/wiki/File:Republiky_square,_east_part,_Pardubice.jpg) | Pavel Hrdlička (Packa) | CC BY-SA 4.0 |
+| [Republiky square, middle part, Pardubice](https://commons.wikimedia.org/wiki/File:Republiky_square,_middle_part,_Pardubice.jpg) | Pavel Hrdlička (Packa) | CC BY-SA 4.0 |
+| [Průmyslové muzeum, nám. Republiky (býv. Osvobození) 116, Pardubice](https://commons.wikimedia.org/wiki/File:Pr%C5%AFmyslov%C3%A9_muzeum,_n%C3%A1m._Republiky_(b%C3%BDv._Osvobozen%C3%AD)_116,_Pardubice.JPG) | Petr1888 | CC BY-SA 3.0 |
+| [Pardubice, náměstí Republiky, zastávka a divadlo](https://commons.wikimedia.org/wiki/File:Pardubice,_n%C3%A1m%C4%9Bst%C3%AD_Republiky,_zast%C3%A1vka_a_divadlo.jpg) | ŠJů | CC BY 4.0 |
+| [Pardubice, náměstí Republiky, jízdní pruhy a divadlo](https://commons.wikimedia.org/wiki/File:Pardubice,_n%C3%A1m%C4%9Bst%C3%AD_Republiky,_j%C3%ADzdn%C3%AD_pruhy_a_divadlo.jpg) | ŠJů | CC BY 4.0 |
+| [Pardubice, divadlo, od magistrátu](https://commons.wikimedia.org/wiki/File:Pardubice,_divadlo,_od_magistr%C3%A1tu.jpg) | ŠJů | CC BY 4.0 |

@@ -20,8 +20,11 @@ export const STYLES = Object.freeze({
   utility: style(5, 4.0, 4.0, ['#bdb8ae', '#a8a39a', '#c9c3b6'], 'flat', 15, ['#6b6b68'], 'none', 0),
   civic: style(6, 3.8, 2.8, ['#e6dcc4', '#d6c7a1'], 'hipped', 35, ['#7a4030'], 'simple', 1),
   // Tier-2 'modern': panel proportions in smooth render (no panel joints)
-  modern: style(7, 2.9, 2.6, ['#e4e0d6', '#d6d2c8'], 'flat', 0, ['#6b6b68'], 'none', 0)
+  modern: style(7, 2.9, 2.6, ['#e4e0d6', '#d6d2c8'], 'flat', 0, ['#6b6b68'], 'none', 0),
+  // building=roof: a canopy (the glass roofs over the underpass stairs, shelters) — a slab with nothing underneath
+  canopy: style(8, 3.2, 4, ['#9a9890'], 'flat', 0, ['#6b6b68'], 'none', 0)
 });
+export const CANOPY_HEIGHT = 2.8, CANOPY_THICKNESS = 0.25;
 
 const SPEC_STYLES = {
   renaissance: ['oldtown', 2], baroque: ['oldtown', 2], classicist: ['oldtown', 2],
@@ -65,11 +68,12 @@ function centroid(record) {
   return [(x0 + x1) / 2, (z0 + z1) / 2];
 }
 
-const UTILITY = /^(garage|garages|industrial|warehouse|roof|service|transportation|grandstand|shed)$/;
+const UTILITY = /^(garage|garages|industrial|warehouse|service|transportation|grandstand|shed)$/;
 const CIVIC = /^(school|kindergarten|civic|public|hospital|university|church)$/;
 
 export function classifyBuilding(record, ctx) {
   const a = record.attrs;
+  if (a.building === 'roof') return 'canopy';
   if (UTILITY.test(a.building) || [18, 1, 16, 12, 17].includes(a.ruian)) return 'utility';
   if (a.building === 'house' || a.building === 'detached' || a.ruian === 7) return 'house';
   const [x, z] = centroid(record), o = ctx.oldTown;
@@ -139,6 +143,11 @@ export function facadeFor(record, spec, ctx) {
     else if (st.shopShare && storeys >= 2) ground = chance(id, 'shops') < st.shopShare ? 'shops' : 'plain';
   }
   const ornament = spec?.ornament ?? specOrnament ?? st.ornament;
+  if (name === 'canopy') {
+    return { style: name, styleCode: st.code, render, storeys: 1, floorHeight: st.floorHeight, eave: CANOPY_HEIGHT,
+      windowWidth: st.windowWidth, ornament: 0, ground: 'plain', cornice: 'none', gable: null,
+      roof: { shape: 'flat', pitchDeg: 0, colour: roofColour, pattern: 0 }, chimneys: false, band };
+  }
 
   return {
     style: name,
