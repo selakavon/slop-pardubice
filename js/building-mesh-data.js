@@ -186,6 +186,15 @@ export function buildingMeshData(records, { partyHeight, distanceToStreet, trian
         }
         for (const [i, j, k] of triangulate(capOuter, capHoles)) tri(ro, capBase + i, capBase + j, capBase + k, 0, 1, 0);
       }
+      // Under a city-block roof, the full footprint in the roof's colour, so simplified slopes leave no open top
+      if (roof.underlay) {
+        const [uo, ...uh] = roof.underlay.rings;
+        const ub = ro.position.length / 3, shade = f.roof.colour.map((v) => v * 0.7);
+        for (const p of roof.underlay.rings.flat()) {
+          ro.position.push(p.x, roof.underlay.y, p.z); ro.normal.push(0, 1, 0); ro.uv.push(p.x, p.z); ro.roofTint.push(...shade, 0);
+        }
+        for (const [i, j, k] of triangulate(uo, uh)) tri(ro, ub + i, ub + j, ub + k, 0, 1, 0);
+      }
       // Gable ends and vertical roof faces over party walls: blank render
       const sigma = Math.sign(signedArea(outer)) || 1;
       const outwardOf = (a, b) => {
@@ -254,6 +263,8 @@ export function buildingMeshData(records, { partyHeight, distanceToStreet, trian
         const [nx, nz] = outwardOf(a, b);
         const outline = gableOutline(f.gable, Math.hypot(b.x - a.x, b.z - a.z), rise).map(([t, y]) => [t, eave + y]);
         wallPolygon(a, b, outline, nx, nz, KIND.lotLine, GABLE_OUT);
+        // Its back, seen over the roof slope from behind
+        wallPolygon(a, b, outline, -nx, -nz, KIND.lotLine, -GABLE_OUT);
         top = Math.max(top, eave + rise);
       }
     }

@@ -381,13 +381,17 @@ export function castleModel(P, buildings) {
   if (gate) {
     const len = Math.hypot(gate.b.x - gate.a.x, gate.b.z - gate.a.z), ux = (gate.b.x - gate.a.x) / len, uz = (gate.b.z - gate.a.z) / len;
     const a = { x: gate.a.x - ux * 2, z: gate.a.z - uz * 2 }, b = { x: gate.b.x + ux * 2, z: gate.b.z + uz * 2 };
-    passages.push({ a, b, width: 4, height: 4.5, polygon: stripPolygon(a, b, 4.4) });
     // The tunnel: where the centre line runs inside the wing, side walls and a vault
     let s0 = null, s1 = null;
     const total = Math.hypot(b.x - a.x, b.z - a.z);
     for (let s = 0; s <= total; s += 0.25) {
       if (inside(a.x + ux * s, a.z + uz * s)) { s0 ??= s; s1 = s; }
     }
+    // The wing's collider is lifted along a strip reaching 4.5 m past both façades (the controllers test a car's
+    // centre against it, and a car is 4.4 m long); the tunnel's own walls keep bodies inside it
+    const sa = Math.min(0, (s0 ?? 0) - 4.5), sb = Math.max(total, (s1 ?? total) + 4.5);
+    const ea = { x: a.x + ux * sa, z: a.z + uz * sa }, eb = { x: a.x + ux * sb, z: a.z + uz * sb };
+    passages.push({ a, b, width: 4, height: 4.5, polygon: stripPolygon(ea, eb, 4.4) });
     if (s0 !== null) {
       // Half a metre short of each façade, so the tunnel walls don't poke out of an oblique wall
       const p0 = { x: a.x + ux * (s0 + 0.5), z: a.z + uz * (s0 + 0.5) }, p1 = { x: a.x + ux * (s1 - 0.5), z: a.z + uz * (s1 - 0.5) };
@@ -395,6 +399,7 @@ export function castleModel(P, buildings) {
       for (const side of [-1, 1]) {
         const off = (p) => ({ x: p.x + nx * side * 2.15, z: p.z + nz * side * 2.15 });
         parts.push(wallPiece(off(p0), off(p1), 0.3, [0, 4.5], 'render'));
+        colliders.push(collider(stripPolygon(off(p0), off(p1), 0.3), 0, 4.5));
       }
       parts.push(wallPiece(p0, p1, 4.6, [4.5, 4.8], 'render'));
       // The clock tower over the gate, on the outer façade

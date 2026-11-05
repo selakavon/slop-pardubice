@@ -77,7 +77,8 @@ test('an invalid inset falls back', () => {
   assert.ok(m.shape === 'flat' || (m.shape === 'skirt' && m.run <= 1.25 / 2 + 0.01 + 0.5), `${m.shape} ${m.run}`);
   const thin = [p(0, 0), p(30, 0), p(30, 0.4), p(15, 0.3), p(0, 0.4)];
   const t = R.roofMesh([thin], { eave: 6, shape: 'skirt', pitchDeg: 45, party: [false, false, false, false, false], front: -1 });
-  assert.equal(t.shape, 'flat');
+  // No skirt fits: the last pitched fallback is a low hipped roof over the minimum-area rectangle
+  assert.ok(t.shape === 'flat' || (t.shape === 'hipped' && t.top - 6 < 0.5), `${t.shape} ${t.top}`);
 });
 
 test('gabled on an L-shaped footprint falls back to skirt', () => {
@@ -127,4 +128,48 @@ test('nearRectangle finds the rotated rectangle', () => {
   assert.ok(r && Math.abs(r.halfLong - 5) < 0.01 && Math.abs(r.halfShort - 2) < 0.01);
   assert.ok(Math.abs(Math.abs(r.ux * c + r.uz * s) - 1) < 1e-6, 'long axis follows the rotation');
   assert.equal(R.nearRectangle([p(0, 0), p(20, 0), p(20, 8), p(8, 8), p(8, 20), p(0, 20)]), null);
+});
+
+test('roof triangles face up and agree with their normals', () => {
+  const L = [p(0, 0), p(20, 0), p(20, 8), p(8, 8), p(8, 20), p(0, 20)];
+  for (const [rings, shape] of [[[box(10, 6)], 'gabled'], [[box(10, 6)], 'hipped'], [[box(8, 8)], 'pyramidal'],
+    [[box(12, 9)], 'mansard'], [[L], 'skirt'], [[box(40, 40), box(20, 20, 10, 10).reverse()], 'skirt']]) {
+    const m = R.roofMesh(rings, { eave: 7, shape, pitchDeg: 40, party: rings[0].map(() => false), front: -1 });
+    const P = m.positions, N = m.normals;
+    for (let i = 0; i < m.indices.length; i += 3) {
+      const [a, b, c] = [0, 1, 2].map((k) => P.slice(3 * m.indices[i + k], 3 * m.indices[i + k] + 3));
+      const u = [b[0] - a[0], b[1] - a[1], b[2] - a[2]], v = [c[0] - a[0], c[1] - a[1], c[2] - a[2]];
+      const n = [u[1] * v[2] - u[2] * v[1], u[2] * v[0] - u[0] * v[2], u[0] * v[1] - u[1] * v[0]];
+      const s = N.slice(3 * m.indices[i], 3 * m.indices[i] + 3);
+      assert.ok(n[1] > 0, `${shape}: triangle ${i / 3} faces down`);
+      assert.ok(n[0] * s[0] + n[1] * s[1] + n[2] * s[2] > 0, `${shape}: triangle ${i / 3} disagrees with its normal`);
+    }
+  }
+});
+
+test('city-block roofs cover their footprint', () => {
+  const ctx = S.createStyleContext(P);
+  const area = (r) => Math.abs(r.reduce((s, q, i) => { const n = r[(i + 1) % r.length]; return s + q.x * n.z - n.x * q.z; }, 0) / 2);
+  const bad = [];
+  for (const b of loadBuildings()) {
+    const f = S.facadeFor(b, undefined, ctx);
+    const poly = b.polygons[0];
+    const m = R.roofMesh([poly.outer, ...poly.holes], { eave: f.eave, shape: f.roof.shape, pitchDeg: f.roof.pitchDeg,
+      party: poly.outer.map(() => false), front: -1 });
+    if (m.shape !== 'skirt') continue;
+    let covered = 0;
+    for (let i = 0; i < m.indices.length; i += 3) {
+      const [a, c, d] = [0, 1, 2].map((k) => ({ x: m.positions[3 * m.indices[i + k]], z: m.positions[3 * m.indices[i + k] + 2] }));
+      covered += area([a, c, d]);
+    }
+    covered += area(m.cap.rings[0]) - m.cap.rings.slice(1).reduce((s, r) => s + area(r), 0);
+    // The underlay (just below the eave) closes whatever the simplified slopes leave open
+    assert.ok(m.underlay && m.underlay.y < f.eave && Math.abs(area(m.underlay.rings[0]) - area(poly.outer)) < 0.01,
+      `${b.attrs.id} has no underlay`);
+    const footprint = area(poly.outer) - poly.holes.reduce((s, r) => s + area(r), 0);
+    // Small round kiosks lose a sliver to the polygonal roof; a real hole is what shows from the helicopter
+    // The slopes and cap themselves leave at most a sliver (the underlay hides it)
+    if (covered < 0.95 * footprint && footprint - covered > 25) bad.push(`${b.attrs.id} ${(100 * covered / footprint).toFixed(0)}% (${(footprint - covered).toFixed(1)} m² open)`);
+  }
+  assert.deepEqual(bad, []);
 });

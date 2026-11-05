@@ -173,3 +173,22 @@ test('a passage opens the walls it crosses up to its height', () => {
   assert.ok(covered(-590, 6), 'the wall continues above it');
   assert.ok(covered(-595, 2), 'the wall continues beside it');
 });
+
+test('a gable panel has a back face', () => {
+  const [x, z] = oldTown();
+  const spec = { area: 'pernstynske', label: 'test', style: 'baroque', render: '#e8c98a', storeys: 3, roof: 'skirt',
+    gable: 'triangle', photo: 'File:x.jpg' };
+  const r = withFacade({ height: 12, attrs: { ...ATTRS }, polygons: [{ outer: [{ x, z }, { x: x + 8, z },
+    { x: x + 8, z: z + 6 }, { x: x + 12, z: z + 6 }, { x: x + 12, z: z + 16 }, { x, z: z + 16 }], holes: [] }] }, spec);
+  const { cells } = M.buildingMeshData([r], { ...noNeighbours, distanceToStreet: (px, pz) => Math.abs(pz - (z - 6)) });
+  const f = parts(cells).facade[0];
+  const faces = { out: 0, back: 0 };
+  for (let i = 0; i < f.index.length; i += 3) {
+    const v = [0, 1, 2].map((k) => f.position.slice(3 * f.index[i + k], 3 * f.index[i + k] + 3));
+    if (!v.every((p) => Math.abs(p[2] - (z - 0.05)) < 1e-6 && p[1] > r.facade.eave - 1e-6)) continue;
+    const u = [v[1][0] - v[0][0], v[1][1] - v[0][1]], w = [v[2][0] - v[0][0], v[2][1] - v[0][1]];
+    const nz = u[0] * w[1] - u[1] * w[0];   // z component of the face normal
+    if (nz < 0) faces.out++; else faces.back++;
+  }
+  assert.ok(faces.out > 0 && faces.back > 0, JSON.stringify(faces));
+});

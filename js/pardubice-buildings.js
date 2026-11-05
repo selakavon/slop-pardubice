@@ -56,31 +56,20 @@ function createStreetDistance() {
   };
 }
 
-function toGeometry(part, attributes) {
-  const geometry = new THREE.BufferGeometry();
-  for (const [name, size] of attributes) geometry.setAttribute(name, new THREE.Float32BufferAttribute(part[name], size));
-  geometry.setIndex(part.index);
-  geometry.computeBoundingSphere();
-  return geometry;
+// A building with its look decided and its bounds
+function planRecord(b, ctx) {
+  const r = { ...b, facade: facadeFor(b, BUILDING_SPECS[b.attrs.id], ctx), ...bounds(b.polygons[0].outer) };
+  r.cx ??= (r.minX + r.maxX) / 2;
+  r.cz ??= (r.minZ + r.maxZ) / 2;
+  return r;
 }
 
-function buildPardubiceBuildings(scene, { colliders: landmarkColliders = [], replaced = new Set(), passages = new Map() } = {}) {
-  const group = new THREE.Group();
-  group.name = 'PardubiceBuildings';
-  const ctx = createStyleContext(PARDUBICE);
-
-  const records = [];
-  for (const b of REAL_BUILDINGS) {
-    if (replaced.has(b.attrs.id)) continue;
-    const facade = facadeFor(b, BUILDING_SPECS[b.attrs.id], ctx);
-    records.push({ ...b, facade, ...bounds(b.polygons[0].outer), passages: passages.get(b.attrs.id) });
-  }
-  for (const r of records) { r.cx ??= (r.minX + r.maxX) / 2; r.cz ??= (r.minZ + r.maxZ) / 2; }
-
-  // Neighbours for party walls: a wall is shared where the ground 1 m outside it lies inside another building
+// partyHeight(record, a, b): the eave of the building on the other side of the wall a→b (0 when the ground 1 m outside
+// it is open). Canopies don't count: a bus shelter against a house must not blank its wall.
+function createPartyHeight(records) {
   const neighbours = new Map();
-  for (const r of records) bucket(neighbours, GRID, r.minX, r.maxX, r.minZ, r.maxZ, r);
-  function partyHeight(record, a, b) {
+  for (const r of records) if (r.facade.style !== 'canopy') bucket(neighbours, GRID, r.minX, r.maxX, r.minZ, r.maxZ, r);
+  return function partyHeight(record, a, b) {
     const dx = b.x - a.x, dz = b.z - a.z, len = Math.hypot(dx, dz);
     if (len < 1e-6) return 0;
     const ring = record.polygons.find((p) => p.outer.includes(a))?.outer || record.polygons[0].outer;
@@ -98,7 +87,26 @@ function buildPardubiceBuildings(scene, { colliders: landmarkColliders = [], rep
       height = Math.max(height, roof);
     }
     return height;
-  }
+  };
+}
+
+function toGeometry(part, attributes) {
+  const geometry = new THREE.BufferGeometry();
+  for (const [name, size] of attributes) geometry.setAttribute(name, new THREE.Float32BufferAttribute(part[name], size));
+  geometry.setIndex(part.index);
+  geometry.computeBoundingSphere();
+  return geometry;
+}
+
+function buildPardubiceBuildings(scene, { colliders: landmarkColliders = [], replaced = new Set(), passages = new Map() } = {}) {
+  const group = new THREE.Group();
+  group.name = 'PardubiceBuildings';
+  const ctx = createStyleContext(PARDUBICE);
+
+  const records = REAL_BUILDINGS.filter((b) => !replaced.has(b.attrs.id))
+    .map((b) => ({ ...planRecord(b, ctx), passages: passages.get(b.attrs.id) }));
+
+  const partyHeight = createPartyHeight(records);
   const triangulate = (outer, holes) => THREE.ShapeUtils.triangulateShape(
     outer.map((p) => new THREE.Vector2(p.x, p.z)), holes.map((h) => h.map((p) => new THREE.Vector2(p.x, p.z))));
 
@@ -143,4 +151,4 @@ function buildPardubiceBuildings(scene, { colliders: landmarkColliders = [], rep
   return { group, colliders, allBlocks, update() {}, updateLights() {} };
 }
 
-export { buildPardubiceBuildings };
+export { buildPardubiceBuildings, planRecord, createPartyHeight, createStreetDistance };

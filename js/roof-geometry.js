@@ -77,7 +77,12 @@ export function nearRectangle(ring) {
 // Accumulates planar roof faces with metre UVs (u along the eave, v up the slope) and upward-facing triangles
 function faceBuilder() {
   const positions = [], uvs = [], normals = [], indices = [];
-  function face(points, ex, ez, hx, hz, slopeCos) {
+  function face(input, ex, ez, hx, hz, slopeCos) {
+    // A ridge that collapses to a point (pyramids, hipped squares) repeats a corner: drop it
+    const points = input.filter((p, i) => {
+      const q = input[(i + input.length - 1) % input.length];
+      return Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2]) > 1e-6;
+    });
     if (points.length < 3) return;
     const base = positions.length / 3, o = points[0];
     for (const [x, y, z] of points) {
@@ -94,8 +99,9 @@ function faceBuilder() {
     for (let i = 0; i < points.length; i++) normals.push((flip ? -nx : nx) / len, (flip ? -ny : ny) / len, (flip ? -nz : nz) / len);
     // Faces are convex (quads and triangles): fan, wound counter-clockwise seen from above (+y)
     for (let i = 1; i + 1 < points.length; i++) {
-      if (flip) indices.push(base, base + i, base + i + 1);
-      else indices.push(base, base + i + 1, base + i);
+      // The Newell vector has the sign of the point order: keep that order when it already faces up
+      if (flip) indices.push(base, base + i + 1, base + i);
+      else indices.push(base, base + i, base + i + 1);
     }
   }
   return { positions, uvs, normals, indices, face };
@@ -223,17 +229,32 @@ function insetRings(rings, distances, maxRun) {
   return out;
 }
 
-// Drops vertices closer than tol to the line through their neighbours (small jogs a uniform inset cannot survive).
-// Returns the kept original indices; a merged edge is a party wall when most of its length was.
-function simplifyRing(ring, tol = 0.6) {
-  let keep = ring.map((_, i) => i);
+// Drops vertices that a straight wall would replace: a vertex goes only if every original vertex between its kept
+// neighbours stays within tol of the new segment (small 0.5 m jogs a uniform inset cannot survive). Returns the kept
+// original indices; a merged edge is a party wall when most of its length was.
+function simplifyRing(ring, tol = 0.6, dropSpikes = false) {
+  const n = ring.length;
+  const dist = (p, a, b) => {
+    const dx = b.x - a.x, dz = b.z - a.z, l2 = dx * dx + dz * dz;
+    const t = l2 ? Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.z - a.z) * dz) / l2)) : 0;
+    return Math.hypot(p.x - a.x - t * dx, p.z - a.z - t * dz);
+  };
+  const keep = ring.map((_, i) => i);
   for (let changed = true; changed && keep.length > 3;) {
     changed = false;
     for (let k = 0; k < keep.length && keep.length > 3; k++) {
+      const ia = keep[(k - 1 + keep.length) % keep.length], ib = keep[(k + 1) % keep.length];
+      const a = ring[ia], b = ring[ib];
+      let ok = true;
+      for (let i = (ia + 1) % n; i !== ib && ok; i = (i + 1) % n) ok = dist(ring[i], a, b) < tol;
+      if (ok) { keep.splice(k, 1); changed = true; k--; }
+    }
+    // Coarse passes also cut spikes (a vertex with an interior angle under 25°: thin tails drawn in OSM)
+    for (let k = 0; dropSpikes && k < keep.length && keep.length > 3; k++) {
       const a = ring[keep[(k - 1 + keep.length) % keep.length]], p = ring[keep[k]], b = ring[keep[(k + 1) % keep.length]];
-      const len = Math.hypot(b.x - a.x, b.z - a.z);
-      const dist = len < 1e-9 ? Math.hypot(p.x - a.x, p.z - a.z) : Math.abs((b.x - a.x) * (p.z - a.z) - (b.z - a.z) * (p.x - a.x)) / len;
-      if (dist < tol) { keep.splice(k, 1); changed = true; k--; }
+      const ux = a.x - p.x, uz = a.z - p.z, vx = b.x - p.x, vz = b.z - p.z;
+      const cos = (ux * vx + uz * vz) / (Math.hypot(ux, uz) * Math.hypot(vx, vz) || 1);
+      if (cos > Math.cos(25 * Math.PI / 180)) { keep.splice(k, 1); changed = true; k--; }
     }
   }
   return keep;
@@ -255,13 +276,19 @@ function mergeFlags(ring, keep, party, front) {
   return { party: flags, front: mergedFront };
 }
 
-function skirtRoof(inputRings, { eave, pitchDeg, party: inputParty, front: inputFront }, run0) {
-  const keeps = inputRings.map((r) => simplifyRing(r));
+// Every edge slopes except party walls (a gable front slopes too: the gable panel stands in front of the slope)
+function skirtRoof(inputRings, { eave, pitchDeg, party: inputParty, front: inputFront, tol: tolIn, steepYard = false }, run0) {
+  // The tolerance shrinks with the building, so small footprints keep their shape
+  const rect = minAreaRect(inputRings[0]);
+  const tol = tolIn ?? Math.min(0.6, 0.1 * 2 * rect.halfShort);
+  const keeps = inputRings.map((r) => simplifyRing(r, tol, tolIn !== undefined));
   const rings = inputRings.map((r, k) => keeps[k].map((i) => r[i]));
   const { party, front } = mergeFlags(inputRings[0], keeps[0], inputParty, inputFront);
   const tan = Math.tan(pitchDeg * Math.PI / 180), cos = Math.cos(pitchDeg * Math.PI / 180);
   for (let attempt = 0, run = run0; attempt < 4 && run > 0.2; attempt++, run /= 2) {
-    const distances = rings.map((ring, k) => ring.map((_, i) => (k === 0 && (party[i] || i === front) ? 0 : run)));
+    void front;
+    // steepYard: courtyard walls rise straight to the cap (narrow wings round a yard)
+    const distances = rings.map((ring, k) => ring.map((_, i) => ((k === 0 && party[i]) || (k > 0 && steepYard) ? 0 : run)));
     const inset = insetRings(rings, distances, run);
     if (!inset) continue;
     const top = eave + run * tan;
@@ -280,7 +307,9 @@ function skirtRoof(inputRings, { eave, pitchDeg, party: inputParty, front: input
       }
     });
     return { positions: g.positions, uvs: g.uvs, normals: g.normals, indices: g.indices,
-      cap: { y: top, rings: inset.map((r) => r.inset) }, top, shape: 'skirt', walls, ridges, run };
+      cap: { y: top, rings: inset.map((r) => r.inset) }, top, shape: 'skirt', walls, ridges, run,
+      // The simplified outline may leave slivers of the real footprint uncovered: a flat underlay closes them
+      underlay: { y: eave - 0.05, rings: inputRings } };
   }
   return null;
 }
@@ -308,7 +337,25 @@ export function roofMesh(inputRings, { eave, shape, pitchDeg, party = [], front 
   }
   const rect = minAreaRect(rings[0]);
   const run = Math.min(MAX_SKIRT_RUN, 0.45 * rect.halfShort * 2, MAX_RISE / Math.tan(pitchDeg * Math.PI / 180));
-  return skirtRoof(rings, { eave, pitchDeg, party: partyFlags, front: frontIndex }, run) || flatRoof(rings, eave);
+  // Fallbacks before giving up on a pitched roof: a coarser outline, then slopes towards the neighbours too, then (no
+  // courtyard) a hipped roof over the minimum-area rectangle, its pitch lowered to keep within MAX_RISE
+  const base = { eave, pitchDeg, party: partyFlags, front: frontIndex };
+  // Light wells under 25 m² may be roofed over as a last resort (the eave ring still runs round them)
+  const bigHoles = rings.filter((r, k) => k === 0 || Math.abs(signedArea(r)) >= 25);
+  const pitched = skirtRoof(rings, base, run) || skirtRoof(rings, { ...base, tol: 1.2 }, run)
+    || skirtRoof(rings, { ...base, party: [], tol: 1.2 }, run)
+    || (bigHoles.length < rings.length && skirtRoof(bigHoles, { ...base, party: [], tol: 1.2 }, run))
+    || (rings.length > 1 && skirtRoof(bigHoles, { ...base, party: [], tol: 1.2, steepYard: true }, run))
+    // Last pitched resort for a courtyard house: roof over the yard (its walls and collider stay)
+    || (rings.length > 1 && skirtRoof([rings[0]], { ...base, party: [], tol: 1.2 }, run));
+  if (pitched) return pitched;
+  if (rings.length === 1 && Math.abs(signedArea(rings[0])) >= 0.85 * rect.area) {
+    const lowered = Math.min(pitchDeg, Math.atan(MAX_RISE / rect.halfShort) * 180 / Math.PI);
+    const roof = rectRoof({ cx: rect.cx, cz: rect.cz, ux: rect.ux, uz: rect.uz, halfLong: rect.halfLong, halfShort: rect.halfShort },
+      { eave, shape: 'hipped', pitchDeg: lowered, front: -1 }, rings[0]);
+    return { ...roof, shape: 'hipped' };
+  }
+  return { ...flatRoof(rings, eave), pitchedFallback: true };
 }
 
 export function pickFrontEdge(ring, party, distanceToStreet) {

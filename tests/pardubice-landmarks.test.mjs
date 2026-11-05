@@ -178,3 +178,25 @@ test('the ramparts leave every path open', () => {
     }
   }
 });
+
+test('the castle passage clears a car and its tunnel walls are solid', () => {
+  const { castle, plan } = castleBits();
+  const [ps] = plan.passages.get('relation/104530');
+  const record = buildings.find((b) => b.attrs.id === 'relation/104530');
+  const solid = (x, z) => inRing(x, z, record.polygons[0].outer) && !record.polygons[0].holes.some((h) => inRing(x, z, h));
+  const len = Math.hypot(ps.b.x - ps.a.x, ps.b.z - ps.a.z), ux = (ps.b.x - ps.a.x) / len, uz = (ps.b.z - ps.a.z) / len;
+  // Where the centre line runs through the wing
+  let s0 = null, s1 = null;
+  for (let s = -10; s <= len + 10; s += 0.1) if (solid(ps.a.x + ux * s, ps.a.z + uz * s)) { s0 ??= s; s1 = s; }
+  // The open strip runs ≥ 4 m past both façades (a car is 4.4 m long and the except test uses its centre)
+  for (const s of [s0 - 4, s1 + 4]) {
+    assert.ok(inRing(ps.a.x + ux * s, ps.a.z + uz * s, ps.polygon.outer), `strip ends before s ${s.toFixed(1)}`);
+  }
+  // The tunnel's side walls block a body that strays sideways inside the wing
+  const mid = (s0 + s1) / 2, nx = -uz, nz = ux;
+  const tunnelWalls = castle.colliders.filter((c) => !c.rampart);
+  for (const side of [-1, 1]) {
+    const x = ps.a.x + ux * mid + nx * side * 2.15, z = ps.a.z + uz * mid + nz * side * 2.15;
+    assert.ok(tunnelWalls.some((c) => hits(c, x, z, 0, 1.9, 0)), `tunnel wall ${side} is open`);
+  }
+});
