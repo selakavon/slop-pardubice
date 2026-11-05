@@ -74,7 +74,7 @@ test('the build is deterministic', { timeout: 180000 }, () => {
       const r = spawnSync(process.execPath, [path.join(root, 'tools/build-pardubice.mjs')], { env: { ...process.env, PARDUBICE_OUT: dir }, encoding: 'utf8' });
       assert.equal(r.status, 0, r.stderr);
     }
-    for (const f of ['pardubice-geodata.js', 'building-geodata.bin.gz', 'tree-geodata.bin.gz']) {
+    for (const f of ['pardubice-geodata.js', 'building-geodata.bin.gz', 'tree-geodata.bin.gz', 'building-attributes.js']) {
       assert.ok(fs.readFileSync(path.join(dirs[0], f)).equals(fs.readFileSync(path.join(dirs[1], f))), f);
     }
   } finally {

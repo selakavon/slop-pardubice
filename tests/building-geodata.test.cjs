@@ -8,11 +8,15 @@ const { gunzipSync, gzipSync } = require('node:zlib');
 const compressed = readFileSync(join(__dirname, '../js/building-geodata.bin.gz'));
 const source = readFileSync(join(__dirname, '../js/building-geodata.js'), 'utf8')
   .replace('import.meta.url', JSON.stringify('https://example.test/city/js/building-geodata.js'))
-  .replace('export const REAL_BUILDINGS', 'const REAL_BUILDINGS');
+  .replace('export const REAL_BUILDINGS', 'const REAL_BUILDINGS')
+  .replace(/^import \{ BUILDING_ATTRIBUTES \} from '\.\/building-attributes\.js';$/m, '');
+const attributesSource = readFileSync(join(__dirname, '../js/building-attributes.js'), 'utf8');
+const BUILDING_ATTRIBUTES = JSON.parse(attributesSource.slice(
+  attributesSource.indexOf('BUILDING_ATTRIBUTES = ') + 22, attributesSource.lastIndexOf(';')));
 const script = new Script(`(async () => { ${source}\nreturn REAL_BUILDINGS; })()`);
 
 function loadBuildings(bytes = compressed, status = 200) {
-  return script.runInNewContext({ URL, Response, DecompressionStream,
+  return script.runInNewContext({ URL, Response, DecompressionStream, BUILDING_ATTRIBUTES,
     fetch: async url => {
       assert.equal(url.href, 'https://example.test/city/js/building-geodata.bin.gz');
       return new Response(bytes, { status });

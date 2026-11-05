@@ -17,7 +17,14 @@ function reader(data, start, end) {
   };
 }
 
-function decodeBuildings(bytes) {
+// js/building-attributes.js is `export const BUILDING_ATTRIBUTES = <JSON>;`
+function loadAttributes(dir) {
+  const src = readFileSync(join(dir, 'building-attributes.js'), 'utf8');
+  const start = src.indexOf('export const BUILDING_ATTRIBUTES = ') + 'export const BUILDING_ATTRIBUTES = '.length;
+  return JSON.parse(src.slice(start, src.lastIndexOf(';')));
+}
+
+function decodeBuildings(bytes, attributes) {
   const data = bytes[0] === 0x1f ? gunzipSync(bytes) : bytes;
   const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
   if (view.getUint32(0, true) !== 0x3142594e) throw new Error('not NYB1');
@@ -37,9 +44,11 @@ function decodeBuildings(bytes) {
       }
       polygons.push({ outer: rings[0], holes: rings.slice(1) });
     }
-    out.push({ height, polygons });
+    const i = out.length;
+    out.push({ height, polygons, ...(attributes ? { attrs: Object.fromEntries(Object.keys(attributes).map((f) => [f, attributes[f][i]])) } : {}) });
   }
   if (!meta.done() || !xs.done() || !zs.done()) throw new Error('trailing NYB1 data');
+  if (attributes && attributes.id.length !== out.length) throw new Error('building attributes do not match NYB1');
   return out;
 }
 
@@ -65,7 +74,7 @@ function inRing(x, z, ring) {
 }
 const insideBuilding = (b, x, z) => b.polygons.some((p) => inRing(x, z, p.outer) && !p.holes.some((h) => inRing(x, z, h)));
 
-const loadBuildings = (dir = join(__dirname, '../../js')) => decodeBuildings(readFileSync(join(dir, 'building-geodata.bin.gz')));
+const loadBuildings = (dir = join(__dirname, '../../js')) => decodeBuildings(readFileSync(join(dir, 'building-geodata.bin.gz')), loadAttributes(dir));
 const loadTrees = (dir = join(__dirname, '../../js')) => decodeTrees(readFileSync(join(dir, 'tree-geodata.bin.gz')));
 
 module.exports = { decodeBuildings, decodeTrees, loadBuildings, loadTrees, inRing, insideBuilding };
