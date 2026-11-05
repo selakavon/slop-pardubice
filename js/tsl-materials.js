@@ -483,8 +483,7 @@ let _storefrontSignTexture;
 
 function getStorefrontSignTexture() {
   if (_storefrontSignTexture) return _storefrontSignTexture;
-  const labels = ['CORNER MARKET', 'COFFEE & BAKERY', 'BOOKS & RECORDS', 'NEIGHBORHOOD DELI',
-    'CLEANERS', 'FLOWERS', 'HARDWARE', 'PIZZA'];
+  const labels = ['POTRAVINY', 'PEKAŘSTVÍ', 'KAVÁRNA', 'LÉKÁRNA', 'TRAFIKA', 'KVĚTINY', 'ŽELEZÁŘSTVÍ', 'KNIHKUPECTVÍ'];
   const canvas = document.createElement('canvas');
   canvas.width = canvas.height = 512;
   const ctx = canvas.getContext('2d');
@@ -3383,6 +3382,17 @@ export {
   cityUniforms,
   WALL_KINDS,
   filteredPulse,
+  hash2D,
+  noise2D,
+  lineAA,
+  gridLine,
+  boxCoverage,
+  facadeCell,
+  facadeWorldNormal,
+  evaluateApartmentInterior,
+  canyonSkyAONode,
+  createStorefront,
+  createBuildingEntrance,
   createCurtainWallMaterial,
   createPreWarBuildingMaterial,
   createFacadeBoxes,
